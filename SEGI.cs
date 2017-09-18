@@ -50,7 +50,7 @@ public class SEGI : MonoBehaviour
 
 	public Color skyColor;
 
-	public float voxelSpaceSize = 50.0f;
+	public float voxelSpaceSize = 25.0f;
 
 	public bool useBilateralFiltering = false;
 

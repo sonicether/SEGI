@@ -7,7 +7,7 @@ using System.Collections.Generic;
 public class SEGIDemo : MonoBehaviour
 {
 	///*
-	SEGICascaded segi;
+	SEGI segi;
 
 	public GameObject throwObject;
 	List<GameObject> thrownObjects = new List<GameObject>();
@@ -26,10 +26,10 @@ public class SEGIDemo : MonoBehaviour
 	Transform heldObject;
 	Transform heldObjectParent;
 
-	public SEGICascadedPreset low;
-	public SEGICascadedPreset medium;
-	public SEGICascadedPreset high;
-	public SEGICascadedPreset ultra;
+	public SEGIPreset low;
+	public SEGIPreset medium;
+	public SEGIPreset high;
+	public SEGIPreset ultra;
 
 	float fps;
 	float prevfps;
@@ -40,12 +40,12 @@ public class SEGIDemo : MonoBehaviour
 	// Use this for initialization
 	void Start()
 	{
-		segi = GetComponent<SEGICascaded>();
+		segi = GetComponent<SEGI>();
 	}
 
 	void UpdateUIText()
 	{
-		voxelResolution.text = "Voxel Resolution: " + (segi.voxelResolution == SEGICascaded.VoxelResolution.low ? "128" : "256");
+		voxelResolution.text = "Voxel Resolution: " + (segi.voxelResolution == SEGI.VoxelResolution.low ? "128" : "256");
         //reflections.text = "Reflections: " + (segi.doReflections ? "On" : "Off");
         reflections.text = "FIX ME";
 		cones.text = "Cones: " + segi.cones.ToString();
@@ -91,14 +91,14 @@ public class SEGIDemo : MonoBehaviour
 
 		if (Input.GetKeyDown(KeyCode.R))
 		{
-			if (segi.voxelResolution == SEGICascaded.VoxelResolution.high)
+			if (segi.voxelResolution == SEGI.VoxelResolution.high)
 			{
-				segi.voxelResolution = SEGICascaded.VoxelResolution.low;
+				segi.voxelResolution = SEGI.VoxelResolution.low;
 				voxelResolution.text = "Voxel Resolution: 128";
 			}
 			else
 			{
-				segi.voxelResolution = SEGICascaded.VoxelResolution.high;
+				segi.voxelResolution = SEGI.VoxelResolution.high;
 				voxelResolution.text = "Voxel Resolution: 256";
 			}
 		}

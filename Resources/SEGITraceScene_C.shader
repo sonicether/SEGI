@@ -379,7 +379,7 @@ Shader "Hidden/SEGITraceScene_C" {
 					skyColor += GISunColor.rgb * pow(sunGradient, (4.0).xxx) * SEGISoftSunlight;
 
 
-					gi += skyColor * skyVisibility * 4.0;
+					gi += skyColor * skyVisibility * 10.0;
 
 					return float4(gi.rgb, 0.0f);
 				}

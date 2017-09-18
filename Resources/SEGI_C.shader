@@ -1,9 +1,4 @@
-﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
-// Upgrade NOTE: commented out 'float4x4 _CameraToWorld', a built-in variable
-// Upgrade NOTE: commented out 'float4x4 _WorldToCamera', a built-in variable
-
-Shader "Hidden/SEGI_C" {
+﻿Shader "Hidden/SEGI_C" {
 Properties {
 	_MainTex ("Base (RGB)", 2D) = "white" {}
 }

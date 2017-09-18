@@ -174,7 +174,7 @@ float4 ConeTrace(float3 voxelOrigin, float3 kernel, float3 worldNormal, float2 u
 	float dist = length(voxelOrigin * 2.0 - 1.0);
 
 
-	///*
+	/*
 	//Screen space tracing
 	float4 kernelScreen = mul(WorldToCamera, float4(kernel.xyz, 0.0));
 	kernelScreen.xyz = normalize(kernelScreen.xyz);
@@ -209,7 +209,7 @@ float4 ConeTrace(float3 voxelOrigin, float3 kernel, float3 worldNormal, float2 u
 
 		ss *= 1.3;
 	} 
-	//*/ 
+	*/ 
 
 	int startMipLevel = log2(length(voxelOrigin.xyz * 2.0 - 1.0) + 1);
 	startMipLevel = 0;
@@ -325,7 +325,7 @@ float4 ConeTrace(float3 voxelOrigin, float3 kernel, float3 worldNormal, float2 u
 
 	gi.rgb *= GIGain * 0.15;
 
-	gi += skyColor * skyVisibility * skyMult * 4.0;
+	gi += skyColor * skyVisibility * skyMult * 10.0;
 
 	//gi += startMipLevel * 0.01 * float3(1.0, 0.0, 0.0); //Visualize cascade LODs
 

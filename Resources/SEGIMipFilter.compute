@@ -1,0 +1,67 @@
+#pragma kernel CSMain
+#pragma kernel CSMainGaussian
+
+RWTexture3D<float4> Destination;
+Texture3D<float4> Source;
+
+SamplerState _LinearClamp;
+SamplerState _PointClamp;
+
+int destinationRes;
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    for (int i = 0; i < destinationRes; i++)
+    {
+        float3 fcoord = float3((float)id.x / destinationRes, (float)id.y / destinationRes, (float)i / destinationRes);
+        float texel = 1.0 / destinationRes;
+
+        float4 tex = Source.SampleLevel(_LinearClamp, fcoord + texel * 0.5, 0.0f);
+
+        Destination[uint3(id.xy, i)] = tex;
+    }
+}
+
+[numthreads(8,8,1)]
+void CSMainGaussian (uint3 id : SV_DispatchThreadID)
+{
+
+    float3 offsets[8] = 
+    {
+        float3(1.0, 1.0, 1.0),
+        float3(1.0, 1.0, -1.0),
+        float3(1.0, -1.0, 1.0),
+        float3(1.0, -1.0, -1.0),
+        float3(-1.0, 1.0, 1.0),
+        float3(-1.0, 1.0, -1.0),
+        float3(-1.0, -1.0, 1.0),
+        float3(-1.0, -1.0, -1.0)
+    };
+
+    for (int i = 0; i < destinationRes; i++)
+    {
+        float3 fcoord = float3((float)id.x / destinationRes, (float)id.y / destinationRes, (float)i / destinationRes);
+        float texel = 1.0 / destinationRes;
+
+        float4 tex = float4(0,0,0,0);
+
+
+        int c = 0;
+
+        for (int j = 0; j < 8; j++)
+        {
+            float3 offset = float3(0, 0, 0);
+
+            offset = offsets[j];
+
+            tex += Source.SampleLevel(_LinearClamp, fcoord + texel * 0.5 + offset * texel * 0.5, 0.0);
+            c++;
+        }
+
+        tex /= c;
+        
+
+        Destination[uint3(id.xy, i)] = tex;
+    }
+}

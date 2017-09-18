@@ -1,0 +1,89 @@
+#pragma kernel CSMain
+#pragma kernel CSMain2
+
+RWTexture3D<float4> Result;
+Texture3D<float4> PrevResult;
+
+Texture3D<uint> RG0;
+
+SamplerState _PointClamp;
+
+int Resolution;
+int VoxelAA;
+
+float4 VoxelOriginDelta;
+
+float2 IntToFloats(uint intval)
+{
+	float value1 = f16tof32(intval);
+	float value2 = f16tof32(intval / 0x0000FFFF);
+	return float2(value1, value2);
+}
+
+float3 hsv2rgb(float3 c)
+{
+	float4 k = float4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+	float3 p = abs(frac(c.xxx + k.xyz) * 6.0 - k.www);
+	return c.z * lerp(k.xxx, saturate(p - k.xxx), c.y);
+}
+
+float4 DecodeRGBAuint(uint value)
+{
+	uint ai = value & 0x0000007F;
+	uint vi = (value / 0x00000080) & 0x000007FF;
+	uint si = (value / 0x00040000) & 0x0000007F;
+	uint hi = value / 0x02000000;
+
+	float h = float(hi) / 127.0;
+	float s = float(si) / 127.0;
+	float v = (float(vi) / 2047.0) * 10.0;
+	float a = ai * 2.0;
+
+	v = pow(v, 3.0);
+
+	float3 color = hsv2rgb(float3(h, s, v));
+
+	return float4(color.rgb, a);
+}
+
+[numthreads(16,16,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    for (int i = 0; i < Resolution; i++)
+    {
+    	float4 result = float4(0,0,0,0);
+
+		result.rgba = DecodeRGBAuint(RG0[uint3(id.x, id.y, i)]);
+
+		result /= 1 + VoxelAA * 3;
+
+		result.rgb /= max(result.a, 2.0);
+
+		float blockerValue = 0.0;
+
+		if (result.a > 20.0)
+		{
+			blockerValue = max(0.0, result.a - 20.0);
+		}
+
+		result.a = min(result.a, 2.0) * 1.25;
+		result.a += blockerValue;
+
+        Result[uint3(id.xy, i)] = result;
+    }
+}
+
+[numthreads(16,16,1)]
+void CSMain2 (uint3 id : SV_DispatchThreadID)
+{
+    for (int i = 0; i < Resolution; i++)
+    {
+    	float4 result = float4(0,0,0,0);
+
+		result.rgba = DecodeRGBAuint(RG0[uint3(id.x, id.y, i)]);
+
+		result.rgb /= max(2.0, result.a);
+
+        Result[uint3(id.xy, i)] = result;
+    }
+}

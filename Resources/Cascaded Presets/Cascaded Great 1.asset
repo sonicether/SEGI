@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 195d4ee8e5f057f4590c043b132f9c86, type: 3}
+  m_Name: Cascaded Great 1
+  m_EditorClassIdentifier: 
+  voxelResolution: 128
+  voxelAA: 0
+  innerOcclusionLayers: 1
+  infiniteBounces: 0
+  temporalBlendWeight: 0.049
+  useBilateralFiltering: 0
+  halfResolution: 0
+  stochasticSampling: 1
+  doReflections: 0
+  cones: 3
+  coneTraceSteps: 10
+  coneLength: 1
+  coneWidth: 2.75
+  coneTraceBias: 1.35
+  occlusionStrength: 0.4
+  nearOcclusionStrength: 0.19
+  occlusionPower: 1
+  nearLightGain: 0.25
+  giGain: 0.84
+  secondaryBounceGain: 0.5
+  reflectionSteps: 64
+  reflectionOcclusionPower: 1
+  skyReflectionIntensity: 1
+  gaussianMipFilter: 0
+  farOcclusionStrength: 1.91
+  farthestOcclusionStrength: 2.18
+  secondaryCones: 6
+  secondaryOcclusionStrength: 0.4

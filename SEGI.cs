@@ -214,11 +214,7 @@ public class SEGI : MonoBehaviour
 		public static int DiffuseTrace = 0;
 		public static int BilateralBlur = 1;
 		public static int BlendWithScene = 2;
-#if UNITY_5_4_OR_NEWER
 		public static int TemporalBlend = 3;
-#else
-		public static int TemporalBlend = 12;
-#endif
 		public static int SpecularTrace = 4;
 		public static int GetCameraDepthTexture = 5;
 		public static int GetWorldNormals = 6;

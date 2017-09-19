@@ -161,7 +161,7 @@ float GISampleWeight(float3 pos)
 	return weight;
 }
 
-float4 ConeTrace(float3 voxelOrigin, float3 kernel, float3 worldNormal, float2 uv, float dither, int steps, float width, float lengthMult, float skyMult, float sampleCurve)
+float4 ConeTrace(float3 voxelOrigin, float3 kernel, float3 worldNormal, float2 uv, float dither, int steps, float width, float lengthMult, float skyMult)
 {
 	float skyVisibility = 1.0;
 
@@ -236,7 +236,6 @@ float4 ConeTrace(float3 voxelOrigin, float3 kernel, float3 worldNormal, float2 u
 		float fi = ((float)i + dither) / numSteps;
 		fi = lerp(fi, 1.0, 0.0);
 
-		fi = pow(fi, sampleCurve);
 
 		float coneDistance = (exp2(fi * 4.0) - 0.99) / 8.0;
 		//coneDistance = pow(coneDistance, 1.2);

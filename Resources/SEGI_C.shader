@@ -48,7 +48,7 @@ SubShader
 	ZWrite Off
 	Fog { Mode off }
 		
-	Pass // diffuse GI trace
+	Pass //0 diffuse GI trace
 	{
 		CGPROGRAM
 			#pragma vertex vert
@@ -57,9 +57,6 @@ SubShader
 			float4x4 CameraToWorld;
 			
 			sampler2D _CameraGBufferTexture2;
-			
-			
-			int FrameSwitch;
 			
 			
 			sampler2D NoiseTexture;
@@ -73,44 +70,34 @@ SubShader
 					float2 coord = input.uv.xy;
 				#endif
 				
+				//Get view space position and view vector
 				float4 viewSpacePosition = GetViewSpacePosition(coord);
 				float3 viewVector = normalize(viewSpacePosition.xyz);
 
-				
+				//Get voxel space position
 				float4 voxelSpacePosition = mul(CameraToWorld, viewSpacePosition);
 				voxelSpacePosition = mul(SEGIWorldToVoxel0, voxelSpacePosition);
 				voxelSpacePosition = mul(SEGIVoxelProjection0, voxelSpacePosition);
 				voxelSpacePosition.xyz = voxelSpacePosition.xyz * 0.5 + 0.5;
 				
-				float3 gi = float3(0.0, 0.0, 0.0);
-											
-				float2 dither = rand(coord + (float)FrameSwitch * 0.011734);
-				float2 dither2 = rand(coord * 2.0 + (float)FrameSwitch * 0.031734);
-				
+
+				//Prepare for cone trace
 				float3 worldNormal = normalize(tex2D(_CameraGBufferTexture2, coord).rgb * 2.0 - 1.0);
 				
-				float3 voxelOrigin = voxelSpacePosition.xyz + worldNormal.xyz * 0.003 * ConeTraceBias * 1.25 / SEGIVoxelScaleFactor;
+				float3 voxelOrigin = voxelSpacePosition.xyz + worldNormal.xyz * 0.003 * ConeTraceBias * 1.25 / SEGIVoxelScaleFactor;	//Apply bias of cone trace origin towards the surface normal to avoid self-occlusion artifacts
 				
+				float3 gi = float3(0.0, 0.0, 0.0);
 				float4 traceResult = float4(0,0,0,0);
-				
 
 				const float phi = 1.618033988;
 				const float gAngle = phi * PI * 1.0;
 
+
+				//Get blue noise
 				float2 noiseCoord = (input.uv.xy * _MainTex_TexelSize.zw) / (64.0).xx;
-				//noiseCoord = fmod(noiseCoord * 64.0, (8.0).xx) / 64.0;
 				float4 blueNoise = tex2Dlod(NoiseTexture, float4(noiseCoord, 0.0, 0.0));
-				//float2 fakeNoiseCoord = fmod((input.uv.xy * _MainTex_TexelSize.zw), (8.0).xx) / 8.0;
-				//float4 blueNoise = float4(rand(fakeNoiseCoord + (float)FrameSwitch * 0.011), rand(fakeNoiseCoord * 2.0 + (float)FrameSwitch * 0.031));
 
-				//blueNoise.yzw *= 0.0;
-
-				//blueNoise.y = fmod(blueNoise.x + 0.5, 1.0);
-
-
-				//proximityEstimate = 0.0;
-
-				
+				//Trace GI cones
 				int numSamples = TraceDirections;
 				for (int i = 0; i < numSamples; i++)
 				{
@@ -129,46 +116,30 @@ SubShader
 					kernel = normalize(kernel + worldNormal.xyz * 1.0);
 
 
-					traceResult += ConeTrace(voxelOrigin.xyz, kernel.xyz, worldNormal.xyz, coord, blueNoise.z, TraceSteps, ConeSize, 1.0, 1.0, 1.0);
+					traceResult += ConeTrace(voxelOrigin.xyz, kernel.xyz, worldNormal.xyz, coord, blueNoise.z, TraceSteps, ConeSize, 1.0, 1.0);
 				}
 				
 				traceResult /= numSamples;
 				gi = traceResult.rgb * 1.18;
 
 
-				float fadeout = saturate((distance(voxelSpacePosition.xyz, float3(0.5, 0.5, 0.5)) - 0.5f) * 5.0);
-
-				float3 fakeGI = saturate(dot(worldNormal, float3(0, 1, 0)) * 0.5 + 0.5) * SEGISkyColor.rgb * 5.0;
-
-				//gi = saturate(proximityEstimate.xxx);
-
-				//gi.rgb = lerp(gi.rgb, fakeGI, fadeout);
-				 
 				return float4(gi, 1.0);
 			}
 			
 		ENDCG
 	}
 	
-	Pass
+	Pass //1 Bilateral Blur
 	{
 		CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
 			
 			float2 Kernel;
-			
-			float DepthTolerance;
-			
-			sampler2D DepthNormalsLow;
-			sampler2D DepthLow;
-			int SourceScale;
-			
 					
 			float4 frag(v2f input) : COLOR0
 			{
 				float4 blurred = float4(0.0, 0.0, 0.0, 0.0);
-				float4 blurredDumb = float4(0.0, 0.0, 0.0, 0.0);
 				float validWeights = 0.0;
 				float depth = LinearEyeDepth(tex2D(_CameraDepthTexture, input.uv.xy).x);
 
@@ -181,13 +152,6 @@ SubShader
 				float NdotV = 1.0 / (saturate(dot(-viewVector, normal.xyz)) + 0.1);
 				thresh *= 1.0 + NdotV * 2.0;
 				
-				float2 sourceCoord = input.uv.xy;
-				sourceCoord /= _MainTex_TexelSize.xy;
-				sourceCoord /= 1;
-				sourceCoord = round(sourceCoord);
-				sourceCoord *= 1;
-				sourceCoord *= _MainTex_TexelSize.xy;
-				
 				for (int i = -4; i <= 4; i++)
 				{
 					float2 offs = Kernel.xy * (i) * _MainTex_TexelSize.xy * 1.0;
@@ -198,13 +162,11 @@ SubShader
 					weight *= pow(saturate(dot(sampleNormal, normal)), 14.0);
 					
 					float4 blurSample = tex2Dlod(_MainTex, float4(input.uv.xy + offs.xy, 0, 0)).rgba;
-					blurredDumb += blurSample;
 					blurred += blurSample * weight;
 					validWeights += weight;
 				}
 				
-				blurredDumb /= 13.0;
-				blurred /= validWeights + 0.001;
+				blurred /= validWeights + 0.0001;
 				
 				return blurred;
 			}		
@@ -212,7 +174,7 @@ SubShader
 		ENDCG
 	}		
 	
-	Pass
+	Pass //2 Blend with scene
 	{
 		CGPROGRAM
 			#pragma vertex vert
@@ -224,14 +186,8 @@ SubShader
 			sampler2D Reflections;
 			
 			
-			float4x4 ProjectionPrev;
-			float4x4 WorldToCameraPrev;
 			float4x4 CameraToWorld;
-			float DeltaTime;
 			
-			float SEGILeftBound;
-			float SEGIRightBound;
-
 			int DoReflections;
 
 			int HalfResolution;
@@ -281,7 +237,7 @@ SubShader
 		ENDCG
 	}	
 	
-	Pass
+	Pass //3 Temporal blend (with unity motion vectors)
 	{
 		CGPROGRAM
 			#pragma vertex vert
@@ -329,8 +285,11 @@ SubShader
 
 				float3 mu = m1 * 0.25;
 				float3 sigma = sqrt(max((0.0).xxx, m2 * 0.25 - mu * mu));
-				float3 minc = mu - (2.0) * sigma;
-				float3 maxc = mu + (2.0) * sigma;
+
+				float errorWindow = 100.0 / BlendWeight;
+
+				float3 minc = mu - (errorWindow) * sigma;
+				float3 maxc = mu + (errorWindow) * sigma;
 
 
 
@@ -403,7 +362,7 @@ SubShader
 
 				//prevGI = lerp(prevGI, blurredGI, saturate(clampDistance * 100.0));
 
-				//prevGI = clamp(prevGI, minc, maxc);
+				prevGI = clamp(prevGI, minc, maxc);
 				
 				gi = lerp(prevGI, gi, float3(blendWeight, blendWeight, blendWeight));
 				
@@ -414,7 +373,7 @@ SubShader
 		ENDCG
 	}
 	
-	Pass
+	Pass //4 Specular/reflections trace
 	{
 		ZTest Always
 	
@@ -496,7 +455,7 @@ SubShader
 		ENDCG
 	}
 	
-	Pass
+	Pass //5 Get camera depth texture
 	{
 		CGPROGRAM
 			#pragma vertex vert
@@ -512,7 +471,7 @@ SubShader
 		ENDCG
 	}
 	
-	Pass
+	Pass //6 Get world normals texture
 	{
 		CGPROGRAM
 			#pragma vertex vert
@@ -530,7 +489,7 @@ SubShader
 	}	
 	
 	
-	Pass
+	Pass //7 Visualize GI
 	{
 		CGPROGRAM
 			#pragma vertex vert
@@ -551,7 +510,7 @@ SubShader
 	
 	
 	
-	Pass
+	Pass //8 Write black
 	{
 		CGPROGRAM
 			#pragma vertex vert
@@ -565,7 +524,7 @@ SubShader
 		ENDCG
 	}
 	
-	Pass
+	Pass //9 Visualize slice of GI Volume TODO: Remove this
 	{
 		CGPROGRAM
 			#pragma vertex vert
@@ -585,7 +544,7 @@ SubShader
 	}
 	
 	
-	Pass
+	Pass //10 Visualize voxels (trace through GI volumes)
 	{
 ZTest Always
 	
@@ -684,7 +643,7 @@ ZTest Always
 		ENDCG
 	}
 	
-	Pass
+	Pass //11 Bilateral upsample
 	{
 		CGPROGRAM
 			#pragma vertex vert

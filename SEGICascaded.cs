@@ -1251,7 +1251,7 @@ public class SEGICascaded : MonoBehaviour
 
 
 		//Perform bilateral filtering
-		if (useBilateralFiltering)
+		if (useBilateralFiltering && temporalBlendWeight >= 0.99999f)
 		{
 			material.SetVector("Kernel", new Vector2(0.0f, 1.0f));
 			Graphics.Blit(gi2, gi1, material, Pass.BilateralBlur);
@@ -1317,7 +1317,28 @@ public class SEGICascaded : MonoBehaviour
 				Graphics.Blit(gi4, gi3, material, Pass.TemporalBlend);
 				Graphics.Blit(gi3, previousGIResult);
 				Graphics.Blit(source, previousDepth, material, Pass.GetCameraDepthTexture);
+
+							
+				//Perform bilateral filtering on temporally blended result
+				if (useBilateralFiltering)
+				{
+					material.SetVector("Kernel", new Vector2(0.0f, 1.0f));
+					Graphics.Blit(gi3, gi4, material, Pass.BilateralBlur);
+
+					material.SetVector("Kernel", new Vector2(1.0f, 0.0f));
+					Graphics.Blit(gi4, gi3, material, Pass.BilateralBlur);
+
+					material.SetVector("Kernel", new Vector2(0.0f, 1.0f));
+					Graphics.Blit(gi3, gi4, material, Pass.BilateralBlur);
+
+					material.SetVector("Kernel", new Vector2(1.0f, 0.0f));
+					Graphics.Blit(gi4, gi3, material, Pass.BilateralBlur);
+				}
 			}
+
+
+
+
 
 			//Set the result to be accessed in the shader
 			material.SetTexture("GITexture", gi3);
@@ -1359,6 +1380,26 @@ public class SEGICascaded : MonoBehaviour
                 Graphics.Blit(gi2, gi1, material, Pass.TemporalBlend);
 				Graphics.Blit(gi1, previousGIResult);
 				Graphics.Blit(source, previousDepth, material, Pass.GetCameraDepthTexture);
+
+
+
+				//Perform bilateral filtering on temporally blended result
+				if (useBilateralFiltering)
+				{
+					material.SetVector("Kernel", new Vector2(0.0f, 1.0f));
+					Graphics.Blit(gi1, gi2, material, Pass.BilateralBlur);
+
+					material.SetVector("Kernel", new Vector2(1.0f, 0.0f));
+					Graphics.Blit(gi2, gi1, material, Pass.BilateralBlur);
+
+					material.SetVector("Kernel", new Vector2(0.0f, 1.0f));
+					Graphics.Blit(gi1, gi2, material, Pass.BilateralBlur);
+
+					material.SetVector("Kernel", new Vector2(1.0f, 0.0f));
+					Graphics.Blit(gi2, gi1, material, Pass.BilateralBlur);
+				}
+
+
 
                 RenderTexture.ReleaseTemporary(blur0);
                 RenderTexture.ReleaseTemporary(blur1);

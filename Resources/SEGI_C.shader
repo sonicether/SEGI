@@ -284,7 +284,7 @@ SubShader
 
 				float3 mu = m1 * 0.25;
 				float3 sigma = sqrt(max((0.0).xxx, m2 * 0.25 - mu * mu));
-				float errorWindow = 100.0 / BlendWeight;
+				float errorWindow = 0.2 / BlendWeight;
 				float3 minc = mu - (errorWindow) * sigma;
 				float3 maxc = mu + (errorWindow) * sigma;
 

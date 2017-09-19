@@ -265,8 +265,8 @@ SubShader
 			{
 				float3 gi = tex2D(_MainTex, input.uv.xy).rgb;
 
+				//Calculate moments and width of color deviation of neighbors for color clamping
 				float3 m1, m2 = (0.0).xxx;
-
 				{
 					float width = 0.7;
 					float3 samp = tex2D(_MainTex, input.uv.xy + float2(width, width) * _MainTex_TexelSize.xy).rgb;
@@ -285,19 +285,15 @@ SubShader
 
 				float3 mu = m1 * 0.25;
 				float3 sigma = sqrt(max((0.0).xxx, m2 * 0.25 - mu * mu));
-
 				float errorWindow = 100.0 / BlendWeight;
-
 				float3 minc = mu - (errorWindow) * sigma;
 				float3 maxc = mu + (errorWindow) * sigma;
 
 
 
-				float3 blurredGI = tex2D(BlurredGI, input.uv.xy).rgb;
 				
-				float2 depthLookupCoord = round(input.uv.xy * _MainTex_TexelSize.zw) * _MainTex_TexelSize.xy;
-				depthLookupCoord = input.uv.xy;
-				float depth = tex2Dlod(_CameraDepthTexture, float4(depthLookupCoord, 0.0, 0.0)).x;
+				//Calculate world space position for current frame
+				float depth = tex2Dlod(_CameraDepthTexture, float4(input.uv.xy, 0.0, 0.0)).x;
 
 				#if defined(UNITY_REVERSED_Z)
 				depth = 1.0 - depth;
@@ -310,27 +306,14 @@ SubShader
 				fragpos = mul(CameraToWorld, fragpos); 
 				fragpos /= fragpos.w;
 				float4 thisWorldPosition = fragpos;
-				/*
-				fragpos.xyz += CameraPosition.xyz * DeltaTime;
-				
-				float4 prevPos = fragpos;
-				prevPos.xyz -= CameraPositionPrev.xyz * DeltaTime;
-				prevPos = mul(WorldToCameraPrev, prevPos);
-				prevPos = mul(ProjectionPrev, prevPos);
-				prevPos /= prevPos.w;
-				
-				float2 diff = currentPos.xy - prevPos.xy;
-				
-				float2 reprojCoord = input.uv.xy - diff.xy * 0.5;
-				float2 previousTexcoord = input.uv.xy + diff.xy * 0.5;
-				*/
 
+
+				//Get motion vectors and calculate reprojection coord
 				float2 motionVectors = tex2Dlod(_CameraMotionVectorsTexture, float4(input.uv.xy, 0.0, 0.0)).xy;
-
 				float2 reprojCoord = input.uv.xy - motionVectors.xy;
 
-				float blendWeight = BlendWeight;
 				
+				//Calculate world space position for the previous frame reprojected to the current frame
 				float prevDepth = (tex2Dlod(PreviousDepth, float4(reprojCoord + _MainTex_TexelSize.xy * 0.0, 0.0, 0.0)).x);
 
 				#if defined(UNITY_REVERSED_Z)
@@ -341,6 +324,12 @@ SubShader
 				previousWorldPosition = mul(CameraToWorldPrev, previousWorldPosition);
 				previousWorldPosition /= previousWorldPosition.w;
 				
+
+				//Apply blending
+				float blendWeight = BlendWeight;
+
+				float3 blurredGI = tex2D(BlurredGI, input.uv.xy).rgb;
+
 				if (reprojCoord.x > 1.0 || reprojCoord.x < 0.0 || reprojCoord.y > 1.0 || reprojCoord.y < 0.0)
 				{
 					blendWeight = 1.0;
@@ -350,20 +339,10 @@ SubShader
 				float posSimilarity = saturate(1.0 - distance(previousWorldPosition.xyz, thisWorldPosition.xyz) * 2.0);
 				blendWeight = lerp(1.0, blendWeight, posSimilarity);
 				gi = lerp(blurredGI, gi, posSimilarity);
-
-				//if (abs(depth - prevDepth) > 0.003)
-				//{
-					//blendWeight = 1.0;
-				//}
 				
+
 				float3 prevGI = tex2D(PreviousGITexture, reprojCoord).rgb;
-
-				//float clampDistance = max(0.0, minc - prevGI) + max(0.0, prevGI - maxc);
-
-				//prevGI = lerp(prevGI, blurredGI, saturate(clampDistance * 100.0));
-
 				prevGI = clamp(prevGI, minc, maxc);
-				
 				gi = lerp(prevGI, gi, float3(blendWeight, blendWeight, blendWeight));
 				
 				float3 result = gi;
@@ -373,7 +352,7 @@ SubShader
 		ENDCG
 	}
 	
-	Pass //4 Specular/reflections trace
+	Pass //4 Specular/reflections trace (CURRENTLY UNUSED)
 	{
 		ZTest Always
 	
@@ -389,7 +368,6 @@ SubShader
 			
 			
 			
-			sampler3D SEGIVolumeTexture1;
 			
 			int FrameSwitch;
 
@@ -524,7 +502,7 @@ SubShader
 		ENDCG
 	}
 	
-	Pass //9 Visualize slice of GI Volume TODO: Remove this
+	Pass //9 Visualize slice of GI Volume (CURRENTLY UNUSED)
 	{
 		CGPROGRAM
 			#pragma vertex vert
@@ -573,29 +551,6 @@ ZTest Always
 				float4 voxelCameraPosition0 = mul(SEGIWorldToVoxel0, float4(CameraPosition.xyz, 1.0));
 					   voxelCameraPosition0 = mul(SEGIVoxelProjection0, voxelCameraPosition0);
 					   voxelCameraPosition0.xyz = voxelCameraPosition0.xyz * 0.5 + 0.5;
-				
-					   /*
-				//TODO: more efficient than matrix multiplications for every level
-				float4 voxelCameraPosition1 = mul(SEGIWorldToVoxel1, float4(CameraPosition.xyz, 1.0));
-					   voxelCameraPosition1 = mul(SEGIVoxelProjection1, voxelCameraPosition1);
-					   voxelCameraPosition1.xyz = voxelCameraPosition1.xyz * 0.5 + 0.5;
-
-				float4 voxelCameraPosition2 = mul(SEGIWorldToVoxel2, float4(CameraPosition.xyz, 1.0));
-					   voxelCameraPosition2 = mul(SEGIVoxelProjection2, voxelCameraPosition2);
-					   voxelCameraPosition2.xyz = voxelCameraPosition2.xyz * 0.5 + 0.5;
-
-				float4 voxelCameraPosition3 = mul(SEGIWorldToVoxel3, float4(CameraPosition.xyz, 1.0));
-					   voxelCameraPosition3 = mul(SEGIVoxelProjection3, voxelCameraPosition3);
-					   voxelCameraPosition3.xyz = voxelCameraPosition3.xyz * 0.5 + 0.5;
-
-				float4 voxelCameraPosition4 = mul(SEGIWorldToVoxel4, float4(CameraPosition.xyz, 1.0));
-					   voxelCameraPosition4 = mul(SEGIVoxelProjection4, voxelCameraPosition4);
-					   voxelCameraPosition4.xyz = voxelCameraPosition4.xyz * 0.5 + 0.5;
-
-				float4 voxelCameraPosition5 = mul(SEGIWorldToVoxel5, float4(CameraPosition.xyz, 1.0));
-					   voxelCameraPosition5 = mul(SEGIVoxelProjection5, voxelCameraPosition5);
-					   voxelCameraPosition5.xyz = voxelCameraPosition5.xyz * 0.5 + 0.5;
-					   */
 
 				float3 voxelCameraPosition1 = TransformClipSpace1(voxelCameraPosition0);
 				float3 voxelCameraPosition2 = TransformClipSpace2(voxelCameraPosition0);
@@ -607,17 +562,14 @@ ZTest Always
 				float4 result = float4(0,0,0,1);
 				float4 trace;
 
-				///*
 
 				trace = VisualConeTrace(voxelCameraPosition0.xyz, worldViewVector.xyz, 1.0, 0);
 				result.rgb += trace.rgb;
 				result.a *= trace.a;
-				//*/
 
 				trace = VisualConeTrace(voxelCameraPosition1.xyz, worldViewVector.xyz, result.a, 1);
 				result.rgb += trace.rgb;
 				result.a *= trace.a;
-				///*
 
 				trace = VisualConeTrace(voxelCameraPosition2.xyz, worldViewVector.xyz, result.a, 2);
 				result.rgb += trace.rgb;
@@ -627,15 +579,13 @@ ZTest Always
 				result.rgb += trace.rgb;
 				result.a *= trace.a;
 
-
 				trace = VisualConeTrace(voxelCameraPosition4.xyz, worldViewVector.xyz, result.a, 4);
 				result.rgb += trace.rgb;
 				result.a *= trace.a;
+
 				trace = VisualConeTrace(voxelCameraPosition5.xyz, worldViewVector.xyz, result.a, 5);
 				result.rgb += trace.rgb;  
 				result.a *= trace.a;
-				//*/
-				//result.rgb = lerp(float3(1.0, 1.0, 1.0), result.rgb, result.a);
 				
 				return float4(result.rgb, 1.0);
 			}

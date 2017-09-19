@@ -1,8 +1,4 @@
-﻿// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
-
-// Upgrade NOTE: replaced '_Object2World' with '_Object2World'
-
-Shader "Hidden/SEGITraceScene_C" {
+﻿Shader "Hidden/SEGITraceScene_C" {
 	Properties
 	{
 		_Color ("Main Color", Color) = (1,1,1,1)
@@ -140,7 +136,6 @@ Shader "Hidden/SEGITraceScene_C" {
 						
 						p[i].pos = mul(UNITY_MATRIX_P, p[i].pos);
 						
-						//p[i].pos.z *= -1.0;
 
 						#if defined(UNITY_REVERSED_Z)
 						p[i].pos.z = 1.0 - p[i].pos.z;
@@ -231,7 +226,6 @@ Shader "Hidden/SEGITraceScene_C" {
 					return TransformClipSpace(pos, SEGIClipTransform5);
 				}
 
-				//TODO: Optimize this part
 				float GISampleWeight(float3 pos)
 				{
 					float weight = 1.0;
@@ -263,11 +257,9 @@ Shader "Hidden/SEGITraceScene_C" {
 
 					float dist = length(voxelOrigin * 2.0 - 1.0);
 					
-					//int startMipLevel = log2(dist + 1);
 					int startMipLevel = 0;
 
 					voxelOrigin = TransformClipSpaceInverse(voxelOrigin, SEGICurrentClipTransform);
-					//voxelOrigin.xyz = TransformClipSpace(voxelOrigin.xyz, SEGIInverseCurrentClipTransform * float4(1.0, 1.0, 1.0, 1.0));
 					voxelOrigin.xyz += worldNormal.xyz * 0.016;
 
 
@@ -283,7 +275,6 @@ Shader "Hidden/SEGITraceScene_C" {
 						
 						float coneDistance = (exp2(fi * 4.0) - 0.99) / 8.0; 
 										
-						//float coneSize = fi * 6.0 * lerp(SEGIVoxelScaleFactor, 1.0, 0.5); 
 						float coneSize = coneDistance * width * 10.3;
 
 						float3 voxelCheckCoord = voxelOrigin.xyz + adjustedKernel.xyz * (coneDistance * 1.12 * 1.0);
@@ -293,18 +284,9 @@ Shader "Hidden/SEGITraceScene_C" {
 
 						mipLevel = max(startMipLevel, log2(pow(fi, 1.3) * 24.0 * width + 1.0));
 
-
-
 						
-							//voxelCheckCoord = TransformClipSpace1(voxelCheckCoord);
-							//sample = tex3Dlod(SEGIVolumeLevel1, float4(voxelCheckCoord.xyz, coneSize)) * GISampleWeight(voxelCheckCoord);
 
-						///*
-						if (mipLevel == 0)
-						{
-							sample = tex3Dlod(SEGIVolumeLevel0, float4(voxelCheckCoord.xyz, coneSize)) * GISampleWeight(voxelCheckCoord);
-						}
-						else if (mipLevel == 1)
+						if (mipLevel == 0 || mipLevel == 1)
 						{
 							voxelCheckCoord = TransformClipSpace1(voxelCheckCoord);
 							sample = tex3Dlod(SEGIVolumeLevel1, float4(voxelCheckCoord.xyz, coneSize)) * GISampleWeight(voxelCheckCoord);
@@ -324,12 +306,11 @@ Shader "Hidden/SEGITraceScene_C" {
 							voxelCheckCoord = TransformClipSpace4(voxelCheckCoord);
 							sample = tex3Dlod(SEGIVolumeLevel4, float4(voxelCheckCoord.xyz, coneSize)) * GISampleWeight(voxelCheckCoord);
 						}
-						else //if (mipLevel == 5)
+						else
 						{
 							voxelCheckCoord = TransformClipSpace5(voxelCheckCoord);
 							sample = tex3Dlod(SEGIVolumeLevel5, float4(voxelCheckCoord.xyz, coneSize)) * GISampleWeight(voxelCheckCoord);
 						}
-						//*/
 						
 						float occlusion = skyVisibility;
 						
@@ -337,31 +318,11 @@ Shader "Hidden/SEGITraceScene_C" {
 
 						gi.rgb += sample.rgb * (coneSize * 1.0 + 1.0) * occlusion * falloffFix;
 
-						//skyVisibility *= pow(saturate(1.0 - (sample.a) * (coneSize * 0.2 + 1.0 + coneSize * coneSize * 0.08)), lerp(0.014, 1.0, min(1.0, coneSize / 5.0)));
 						skyVisibility *= pow(saturate(1.0 - sample.a * SEGISecondaryOcclusionStrength * (1.0 + coneDistance * farOcclusionStrength)), 1.0 * occlusionPower);
 
 						
 					}
-					
-					/*
-					skyVisibility *= saturate(dot(worldNormal, kernel));
-					skyVisibility *= lerp(saturate(dot(kernel, float3(0.0, 1.0, 0.0)) * 10.0), 1.0, SEGISphericalSkylight);
 
-					gi *= saturate(dot(worldNormal, kernel));
-					
-					float3 skyColor = float3(0.0, 0.0, 0.0);
-					
-					float upGradient = saturate(dot(kernel, float3(0.0, 1.0, 0.0)));
-					float sunGradient = saturate(dot(kernel, -SEGISunlightVector.xyz));
-					skyColor += lerp(SEGISkyColor.rgb * 2.0, SEGISkyColor.rgb, pow(upGradient, (0.5).xxx));
-					skyColor += GISunColor.rgb * pow(sunGradient, (4.0).xxx) * SEGISoftSunlight;
-					
-					gi *= 0.5;
-					
-					gi += skyColor * skyVisibility;
-					
-					return float4(gi.rgb * 0.8, 0.0f);
-					*/
 
 					float NdotL = pow(saturate(dot(worldNormal, kernel) * 1.0 - 0.0), 1.0);
 
@@ -372,7 +333,6 @@ Shader "Hidden/SEGITraceScene_C" {
 
 					float3 skyColor = float3(0.0, 0.0, 0.0);
 
-					//sky tinting
 					float upGradient = saturate(dot(kernel, float3(0.0, 1.0, 0.0)));
 					float sunGradient = saturate(dot(kernel, -SEGISunlightVector.xyz));
 					skyColor += lerp(SEGISkyColor.rgb * 1.0, SEGISkyColor.rgb * 0.5, pow(upGradient, (0.5).xxx));
@@ -549,8 +509,6 @@ Shader "Hidden/SEGITraceScene_C" {
 					
 					gi.rgb += traceResult.a * 1.0 * SEGISkyColor;
 
-					//gi.rgb = (0.3).xxx;
-					
 					
 					float4 result = float4(gi.rgb, 2.0);
 

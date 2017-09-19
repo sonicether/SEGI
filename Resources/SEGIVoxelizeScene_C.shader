@@ -1,10 +1,4 @@
-﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
-// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
-
-// Upgrade NOTE: replaced '_Object2World' with '_Object2World'
-
-Shader "Hidden/SEGIVoxelizeScene_C" {
+﻿Shader "Hidden/SEGIVoxelizeScene_C" {
 	Properties
 	{
 		_Color ("Main Color", Color) = (1,1,1,1)
@@ -98,7 +92,6 @@ Shader "Hidden/SEGIVoxelizeScene_C" {
 					for (int i = 0; i < 3; i++)
 					{
 						p[i] = input[i];
-						//p[i].pos = mul(unity_ObjectToWorld, p[i].pos);	
 						p[i].pos = UnityObjectToClipPos(p[i].pos);	
 					}
 					
@@ -142,58 +135,19 @@ Shader "Hidden/SEGIVoxelizeScene_C" {
 
 						if (angle == 0)
 						{
-							//p[i].pos = mul(SEGIVoxelViewFront, p[i].pos);					
-							//p[i].pos = mul(SEGIVoxelVPFront, p[i].pos);	
 							p[i].pos.xyz = op.xyz;	
-							//p[i].pos.z *= 0.5;	
-							
-							//p[i].pos.x = - p[i].pos.x;		
 						}
 						else if (angle == 1)
 						{
-							//p[i].pos = mul(SEGIVoxelViewLeft, p[i].pos);					
-							//p[i].pos = mul(SEGIVoxelVPLeft, p[i].pos);
-
-							/*
-							#if defined(UNITY_REVERSED_Z)
-							p[i].pos.x = (op.z);
-							#else
-							p[i].pos.x = (1.0 - op.z);
-							#endif
-
-							p[i].pos.y = op.y;
-							p[i].pos.z = (op.x);
-							*/
-
 							p[i].pos.xyz = op.zyx * float3(1.0, 1.0, -1.0);
 						}
 						else
 						{
-							//p[i].pos = mul(SEGIVoxelViewTop, p[i].pos);		
-							//p[i].pos = mul(SEGIVoxelVPTop, p[i].pos);	
-							
-							/*
-							p[i].pos.x = op.x;
-							#if defined(UNITY_REVERSED_Z)
-							p[i].pos.y = (1.0 - op.z);
-							p[i].pos.z = op.y;
-							#else
-							p[i].pos.y = (op.z)
-							p[i].pos.z = 1.0 - (op.y);
-							#endif
-							*/
 							p[i].pos.xyz = op.xzy * float3(1.0, 1.0, -1.0);
 						}
 
 						p[i].pos.z = p[i].pos.z * 0.5 + 0.5;
 						
-						//p[i].pos = mul(UNITY_MATRIX_P, p[i].pos);
-						//p[i].pos = mul(SEGIVoxelProjectionGPU, p[i].pos);
-						
-						//p[i].pos.z *= -1.0;	
-
-						//p[i].pos.z /= VoxelResolution;
-
 						#if defined(UNITY_REVERSED_Z)
 						p[i].pos.z = 1.0 - p[i].pos.z;
 						#else
@@ -229,7 +183,6 @@ Shader "Hidden/SEGIVoxelizeScene_C" {
 
 				float4 DecodeRGBAuint(uint value)
 				{
-					//return float4(1,1,1,1);
 					uint ai = value & 0x0000007F;
 					uint vi = (value / 0x00000080) & 0x000007FF;
 					uint si = (value / 0x00040000) & 0x0000007F;
@@ -249,7 +202,6 @@ Shader "Hidden/SEGIVoxelizeScene_C" {
 
 				uint EncodeRGBAuint(float4 color)
 				{
-					//return 0;
 					//7[HHHHHHH] 7[SSSSSSS] 11[VVVVVVVVVVV] 7[AAAAAAAA]
 					float3 hsv = rgb2hsv(color.rgb);
 					hsv.z = pow(hsv.z, 1.0 / 3.0);
@@ -271,22 +223,6 @@ Shader "Hidden/SEGIVoxelizeScene_C" {
 
 				void interlockedAddFloat4(RWTexture3D<uint> destination, int3 coord, float4 value)
 				{
-					/*
-					uint writeValue = EncodeRGBAuint(value);
-					uint compareValue = 0;
-					uint originalValue;
-
-					[allow_uav_condition] for (int i = 0; i < 12; i++)
-					{
-						InterlockedCompareExchange(destination[coord], compareValue, writeValue, originalValue);
-						if (compareValue == originalValue)
-							break;
-						compareValue = originalValue;
-						float4 originalValueFloats = DecodeRGBAuint(originalValue);
-						writeValue = EncodeRGBAuint(originalValueFloats + value);
-					}
-					*/
-
 					uint comp;
 					uint orig = destination[coord];
 
@@ -301,22 +237,6 @@ Shader "Hidden/SEGIVoxelizeScene_C" {
 
 				void interlockedAddFloat4b(RWTexture3D<uint> destination, int3 coord, float4 value)
 				{
-					/*
-					uint writeValue = EncodeRGBAuint(value);
-					uint compareValue = 0;
-					uint originalValue;
-
-					[allow_uav_condition] for (int i = 0; i < 1; i++)
-					{
-						InterlockedCompareExchange(destination[coord], compareValue, writeValue, originalValue);
-						if (compareValue == originalValue)
-							break;
-						compareValue = originalValue;
-						float4 originalValueFloats = DecodeRGBAuint(originalValue);
-						writeValue = EncodeRGBAuint(originalValueFloats + value);
-					}
-					*/
-					
 					uint comp;
 					uint orig = destination[coord];
 
@@ -411,12 +331,10 @@ Shader "Hidden/SEGIVoxelizeScene_C" {
 
 					
 					float3 col = sunVisibility.xxx * sunNdotL * color.rgb * tex.rgb * GISunColor.rgb * GISunColor.a + _EmissionColor.rgb * 0.9 * emissionTex.rgb;
-					//float3 col = color.rgb * tex.rgb * GISunColor.rgb * GISunColor.a + _EmissionColor.rgb * 0.9 * emissionTex.rgb;
 
 					float4 prevBounce = tex3D(SEGICurrentIrradianceVolume, fcoord + SEGIVoxelSpaceOriginDelta.xyz);
 					col.rgb += prevBounce.rgb * 0.2 * SEGISecondaryBounceGain * tex.rgb * color.rgb;
 
-					//col.rgb *= _Color.a;
 					 
 					float4 result = float4(col.rgb, 2.0);
 

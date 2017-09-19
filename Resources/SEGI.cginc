@@ -55,9 +55,7 @@ sampler2D _MainTex;
 sampler2D PreviousGITexture;
 sampler2D _CameraGBufferTexture0;
 sampler2D _CameraMotionVectorsTexture;
-// float4x4 _WorldToCamera;
 float4x4 WorldToCamera;
-// float4x4 _CameraToWorld;
 float4x4 ProjectionMatrix;
 
 int SEGISphericalSkylight;
@@ -165,7 +163,6 @@ float4 ConeTrace(float3 voxelOrigin, float3 kernel, float3 worldNormal, float2 u
 
 	float3 skyColor = float3(0.0, 0.0, 0.0);
 
-	//sky tinting
 	float upGradient = saturate(dot(kernel, float3(0.0, 1.0, 0.0)));
 	float sunGradient = saturate(dot(kernel, -SEGISunlightVector.xyz));
 	skyColor += lerp(SEGISkyColor.rgb * 1.0, SEGISkyColor.rgb * 0.5, pow(upGradient, (0.5).xxx));

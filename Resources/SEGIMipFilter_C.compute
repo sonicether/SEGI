@@ -26,14 +26,12 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 		tex.rgba *= 2.0;
 
 		float3 writeCoord = fcoord;
-		//writeCoord = writeCoord * 0.5 + 0.5 + ClipmapOverlap.xyz * 0.0; 
 		writeCoord = writeCoord * 0.5 + 0.25;
 		writeCoord += ClipmapOverlap.xyz * 1.0;
 		writeCoord *= destinationRes;
 		uint3 writeCoordi = uint3(writeCoord.x, writeCoord.y, writeCoord.z);
 
         Destination[writeCoordi] = tex;
-        //Destination[writeCoordi] = float4(0.01, 0.005, 0.0, 0.0);
     }
 }
 

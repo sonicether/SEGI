@@ -1,7 +1,3 @@
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
-// Upgrade NOTE: commented out 'float4x4 _WorldToCamera', a built-in variable
-
 Shader "Hidden/SEGIRenderSunDepth_C" {
 Properties {
 	_Color ("Main Color", Color) = (1,1,1,1)
@@ -26,7 +22,6 @@ SubShader
 			fixed4 _Color;
 			float _Cutoff;
 			
-			// float4x4 _WorldToCamera;
 			
 			struct v2f
 			{

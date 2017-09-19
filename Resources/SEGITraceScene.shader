@@ -1,6 +1,4 @@
-﻿// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
-
-Shader "Hidden/SEGITraceScene" {
+﻿Shader "Hidden/SEGITraceScene" {
 	Properties
 	{
 		_Color ("Main Color", Color) = (1,1,1,1)

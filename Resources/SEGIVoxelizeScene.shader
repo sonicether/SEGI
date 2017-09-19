@@ -1,6 +1,4 @@
-﻿// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
-
-Shader "Hidden/SEGIVoxelizeScene" {
+﻿Shader "Hidden/SEGIVoxelizeScene" {
 	Properties
 	{
 		_Color ("Main Color", Color) = (1,1,1,1)
@@ -312,9 +310,6 @@ Shader "Hidden/SEGIVoxelizeScene" {
 
 					
 					float3 col = sunVisibility.xxx * sunNdotL * color.rgb * tex.rgb * GISunColor.rgb * GISunColor.a + _EmissionColor.rgb * 0.9 * emissionTex.rgb;
-					//float3 col = color.rgb * tex.rgb * GISunColor.rgb * GISunColor.a + _EmissionColor.rgb * 0.9 * emissionTex.rgb;
-					//float3 col = saturate(float3(shadowPos.xy, 0.0));
-
 
 					float4 prevBounce = tex3D(SEGIVolumeTexture1, fcoord + SEGIVoxelSpaceOriginDelta.xyz);
 					col.rgb += prevBounce.rgb * 1.6 * SEGISecondaryBounceGain * tex.rgb * color.rgb;

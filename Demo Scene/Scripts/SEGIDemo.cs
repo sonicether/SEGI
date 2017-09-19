@@ -44,7 +44,7 @@ public class SEGIDemo : MonoBehaviour
 	void UpdateUIText()
 	{
 		voxelResolution.text = "Voxel Resolution: " + (segi.voxelResolution == SEGI.VoxelResolution.low ? "128" : "256");
-        reflections.text = "FIX ME";
+        reflections.text = "Reflections: " + (segi.doReflections ? "On" : "Off");
 		cones.text = "Cones: " + segi.cones.ToString();
 		coneTraceSteps.text = "Cone Trace Steps: " + segi.coneTraceSteps.ToString();
 		infiniteBounces.text = "Infinite Bounces: " + (segi.infiniteBounces ? "On" : "Off");

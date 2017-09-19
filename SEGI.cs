@@ -134,41 +134,29 @@ public class SEGI : MonoBehaviour
 	RenderTexture sunDepthTexture;
 	RenderTexture previousGIResult;
 	RenderTexture previousCameraDepth;
-	///<summary>
-	/// This is a volume texture that is immediately written to in the voxelization shader. The RInt format enables atomic writes to avoid issues where multiple fragments are trying to write to the same voxel in the volume.
-	///</summary>
+
+	///<summary>This is a volume texture that is immediately written to in the voxelization shader. The RInt format enables atomic writes to avoid issues where multiple fragments are trying to write to the same voxel in the volume.</summary>
 	RenderTexture integerVolume;
-	///<summary>
-	/// An array of volume textures where each element is a mip/LOD level. Each volume is half the resolution of the previous volume. Separate textures for each mip level are required for manual mip-mapping of the main GI volume texture.
-	///</summary>
+
+	///<summary>An array of volume textures where each element is a mip/LOD level. Each volume is half the resolution of the previous volume. Separate textures for each mip level are required for manual mip-mapping of the main GI volume texture.</summary>
 	RenderTexture[] volumeTextures;
-	///<summary>
-	/// The secondary volume texture that holds irradiance calculated during the in-volume GI tracing that occurs when Infinite Bounces is enabled. 
-	///</summary>
+
+	///<summary>The secondary volume texture that holds irradiance calculated during the in-volume GI tracing that occurs when Infinite Bounces is enabled. </summary>
 	RenderTexture secondaryIrradianceVolume;
-	///<summary>
-	/// The alternate mip level 0 main volume texture needed to avoid simultaneous read/write errors while performing temporal stabilization on the main voxel volume.
-	///</summary>
+
+	///<summary>The alternate mip level 0 main volume texture needed to avoid simultaneous read/write errors while performing temporal stabilization on the main voxel volume.</summary>
 	RenderTexture volumeTextureB;
 
-	///<summary>
-	/// The current active volume texture that holds GI information to be read during GI tracing.
-	///</summary>
+	///<summary>The current active volume texture that holds GI information to be read during GI tracing.</summary>
 	RenderTexture activeVolume;
 
-	///<summary>
-	/// The volume texture that holds GI information to be read during GI tracing that was used in the previous frame. 
-	///</summary>
+	///<summary>The volume texture that holds GI information to be read during GI tracing that was used in the previous frame.</summary>
 	RenderTexture previousActiveVolume;
 
-	///<summary>
-	/// A 2D texture with the size of [voxel resolution, voxel resolution] that must be used as the active render texture when rendering the scene for voxelization. This texture scales depending on whether Voxel AA is enabled to ensure correct voxelization.
-	///</summary>
+	///<summary>A 2D texture with the size of [voxel resolution, voxel resolution] that must be used as the active render texture when rendering the scene for voxelization. This texture scales depending on whether Voxel AA is enabled to ensure correct voxelization.</summary>
 	RenderTexture dummyVoxelTextureAAScaled;
 
-	///<summary>
-	/// A 2D texture with the size of [voxel resolution, voxel resolution] that must be used as the active render texture when rendering the scene for voxelization. This texture is always the same size whether Voxel AA is enabled or not.
-	///</summary>
+	///<summary>A 2D texture with the size of [voxel resolution, voxel resolution] that must be used as the active render texture when rendering the scene for voxelization. This texture is always the same size whether Voxel AA is enabled or not.</summary>
 	RenderTexture dummyVoxelTextureFixed;
 
 	bool notReadyToRender = false;
@@ -340,7 +328,7 @@ public class SEGI : MonoBehaviour
 #endregion
 
 
-
+	///<summary>Applies an SEGIPreset to this instance of SEGI.</summary>
 	public void ApplyPreset(SEGIPreset preset)
 	{
 		voxelResolution = preset.voxelResolution;
@@ -891,16 +879,7 @@ public class SEGI : MonoBehaviour
 
 
 			//Set matrices needed for voxelization
-
-			//THESE IN PARTICULAR MAY NOT BE NEEDED:
-			Shader.SetGlobalMatrix("WorldToGI", shadowCam.worldToCameraMatrix);
-			Shader.SetGlobalMatrix("GIToWorld", shadowCam.cameraToWorldMatrix);
-			Shader.SetGlobalMatrix("GIProjection", shadowCam.projectionMatrix);
-			Shader.SetGlobalMatrix("GIProjectionInverse", shadowCam.projectionMatrix.inverse);
 			Shader.SetGlobalMatrix("WorldToCamera", attachedCamera.worldToCameraMatrix);
-			Shader.SetGlobalFloat("GIDepthRatio", shadowSpaceDepthRatio);
-
-
 			Shader.SetGlobalMatrix("SEGIVoxelViewFront", TransformViewMatrix(voxelCamera.transform.worldToLocalMatrix));
 			Shader.SetGlobalMatrix("SEGIVoxelViewLeft", TransformViewMatrix(leftViewPoint.transform.worldToLocalMatrix));
 			Shader.SetGlobalMatrix("SEGIVoxelViewTop", TransformViewMatrix(topViewPoint.transform.worldToLocalMatrix));
@@ -910,8 +889,11 @@ public class SEGI : MonoBehaviour
 
 			Shader.SetGlobalInt("SEGIVoxelResolution", (int)voxelResolution);
 
+			Matrix4x4 voxelToGIProjection = (shadowCam.projectionMatrix) * (shadowCam.worldToCameraMatrix) * (voxelCamera.cameraToWorldMatrix);
+			Shader.SetGlobalMatrix("SEGIVoxelToGIProjection", voxelToGIProjection);
+			Shader.SetGlobalVector("SEGISunlightVector", sun ? Vector3.Normalize(sun.transform.forward) : Vector3.up);
 
-			//Set paramteters TODO: clean this
+			//Set paramteters
 			Shader.SetGlobalColor("GISunColor", sun == null ? Color.black : new Color(Mathf.Pow(sun.color.r, 2.2f), Mathf.Pow(sun.color.g, 2.2f), Mathf.Pow(sun.color.b, 2.2f), Mathf.Pow(sun.intensity, 2.2f)));
 			Shader.SetGlobalColor("SEGISkyColor", new Color(Mathf.Pow(skyColor.r * skyIntensity * 0.5f, 2.2f), Mathf.Pow(skyColor.g * skyIntensity * 0.5f, 2.2f), Mathf.Pow(skyColor.b * skyIntensity * 0.5f, 2.2f), Mathf.Pow(skyColor.a, 2.2f)));
 			Shader.SetGlobalFloat("GIGain", giGain);
@@ -961,10 +943,7 @@ public class SEGI : MonoBehaviour
 
 
 
-			//TODO: find a nice place for these lines
-			Matrix4x4 voxelToGIProjection = (shadowCam.projectionMatrix) * (shadowCam.worldToCameraMatrix) * (voxelCamera.cameraToWorldMatrix);
-			Shader.SetGlobalMatrix("SEGIVoxelToGIProjection", voxelToGIProjection);
-			Shader.SetGlobalVector("SEGISunlightVector", sun ? Vector3.Normalize(sun.transform.forward) : Vector3.up);
+
 
 
 
@@ -1042,10 +1021,6 @@ public class SEGI : MonoBehaviour
 
 			renderState = RenderState.Voxelize;
 		}
-
-		//THIS MAY NOT BE NEEDED
-		Matrix4x4 giToVoxelProjection = voxelCamera.projectionMatrix * voxelCamera.worldToCameraMatrix * shadowCam.cameraToWorldMatrix;
-		Shader.SetGlobalMatrix("GIToVoxelProjection", giToVoxelProjection);
 
 
 
@@ -1190,7 +1165,7 @@ public class SEGI : MonoBehaviour
 				Graphics.Blit(source, previousCameraDepth, material, Pass.GetCameraDepthTexture);
 			}
 
-			//Set the result to a texture to be accessed in the shader
+			//Set the result to be accessed in the shader
 			material.SetTexture("GITexture", gi3);
 
 			//Actually apply the GI to the scene using gbuffer data

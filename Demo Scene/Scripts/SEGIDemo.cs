@@ -6,7 +6,6 @@ using System.Collections.Generic;
 
 public class SEGIDemo : MonoBehaviour
 {
-	///*
 	SEGI segi;
 
 	public GameObject throwObject;
@@ -37,7 +36,6 @@ public class SEGIDemo : MonoBehaviour
 
 	public GameObject infoOverlay;
 
-	// Use this for initialization
 	void Start()
 	{
 		segi = GetComponent<SEGI>();
@@ -46,7 +44,6 @@ public class SEGIDemo : MonoBehaviour
 	void UpdateUIText()
 	{
 		voxelResolution.text = "Voxel Resolution: " + (segi.voxelResolution == SEGI.VoxelResolution.low ? "128" : "256");
-        //reflections.text = "Reflections: " + (segi.doReflections ? "On" : "Off");
         reflections.text = "FIX ME";
 		cones.text = "Cones: " + segi.cones.ToString();
 		coneTraceSteps.text = "Cone Trace Steps: " + segi.coneTraceSteps.ToString();
@@ -62,7 +59,6 @@ public class SEGIDemo : MonoBehaviour
 		prevfps = 1.0f / Time.deltaTime;
 	}
 
-	// Update is called once per frame
 	void Update()
 	{
 		UpdateUIText();
@@ -118,11 +114,6 @@ public class SEGIDemo : MonoBehaviour
 			GameObject thrownObject = Instantiate(throwObject, transform.position + transform.forward * 4.0f, transform.rotation) as GameObject;
 			Rigidbody thrownRigidbody = thrownObject.GetComponent<Rigidbody>();
 			thrownRigidbody.AddForce(transform.forward * 1000.0f);
-			//ThrowObject script = thrownObject.GetComponent<ThrowObject>();
-			//script.glowiness = 1.0f;
-			//Renderer renderer = thrownObject.GetComponent<Renderer>();
-			//renderer.material.color = new Color(UnityEngine.Random.Range(0.0f, 1.0f), UnityEngine.Random.Range(0.0f, 1.0f), UnityEngine.Random.Range(0.0f, 1.0f), 1.0f);
-			//renderer.material.SetColor("_EmissionColor", renderer.material.color);
 			thrownObjects.Add(thrownObject);
 			spawnedObjectsCounter++;
 		}
@@ -199,12 +190,10 @@ public class SEGIDemo : MonoBehaviour
 		}
 		if (Input.GetKey(KeyCode.UpArrow))
 		{
-			//segi.sun.transform.RotateAround(segi.sun.transform.position, Vector3.right, 30.0f * Time.deltaTime);
 			segi.sun.transform.Rotate(Vector3.right * 30.0f * Time.deltaTime);
 		}
 		if (Input.GetKey(KeyCode.DownArrow))
 		{
-			//segi.sun.transform.RotateAround(segi.sun.transform.position, Vector3.left, 30.0f * Time.deltaTime);
 			segi.sun.transform.Rotate(Vector3.left * 30.0f * Time.deltaTime);
 		}
 
@@ -236,7 +225,5 @@ public class SEGIDemo : MonoBehaviour
 	{
 		RenderSettings.ambientIntensity = 1.0f;
 	}
-
-	//*/
 	
 }

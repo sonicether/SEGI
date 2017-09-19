@@ -103,7 +103,7 @@ SubShader
 				{
 					float fi = (float)i + blueNoise.x * StochasticSampling;
 					float fiN = fi / numSamples;
-					float longitude = gAngle * fi * 1;
+					float longitude = gAngle * fi;
 					float latitude = (fiN * 2.0 - 1.0);
 					latitude += (blueNoise.y * 2.0 - 1.0) * 0.25;
 					latitude = asin(latitude);
@@ -142,7 +142,6 @@ SubShader
 				float4 blurred = float4(0.0, 0.0, 0.0, 0.0);
 				float validWeights = 0.0;
 				float depth = LinearEyeDepth(tex2D(_CameraDepthTexture, input.uv.xy).x);
-
 				half3 normal = DecodeViewNormalStereo(tex2D(_CameraDepthNormalsTexture, input.uv.xy));
 				float thresh = 0.26;
 				
@@ -449,7 +448,7 @@ SubShader
 		ENDCG
 	}
 	
-	Pass //6 Get world normals texture
+	Pass //6 Get cmmera normals texture
 	{
 		CGPROGRAM
 			#pragma vertex vert

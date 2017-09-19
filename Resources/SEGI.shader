@@ -1,9 +1,4 @@
-﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
-// Upgrade NOTE: commented out 'float4x4 _CameraToWorld', a built-in variable
-// Upgrade NOTE: commented out 'float4x4 _WorldToCamera', a built-in variable
-
-Shader "Hidden/SEGI" {
+﻿Shader "Hidden/SEGI" {
 Properties {
 	_MainTex ("Base (RGB)", 2D) = "white" {}
 }
@@ -80,40 +75,42 @@ SubShader
 				#else
 					float2 coord = input.uv.xy;
 				#endif
-				
+
+				//Get view space position and view vector
 				float4 viewSpacePosition = GetViewSpacePosition(coord);
 				float3 viewVector = normalize(viewSpacePosition.xyz);
 
-				
+				//Get voxel space position
 				float4 voxelSpacePosition = mul(CameraToWorld, viewSpacePosition);
 				voxelSpacePosition = mul(SEGIWorldToVoxel, voxelSpacePosition);
 				voxelSpacePosition = mul(SEGIVoxelProjection, voxelSpacePosition);
 				voxelSpacePosition.xyz = voxelSpacePosition.xyz * 0.5 + 0.5;
 				
-				float3 gi = float3(0.0, 0.0, 0.0);
-											
+
+				//Prepare for cone trace
 				float2 dither = rand(coord + (float)FrameSwitch * 0.011734);
-				float2 dither2 = rand(coord * 2.0 + (float)FrameSwitch * 0.031734);
 				
 				float3 worldNormal = normalize(tex2D(_CameraGBufferTexture2, coord).rgb * 2.0 - 1.0);
 				
 				float3 voxelOrigin = voxelSpacePosition.xyz + worldNormal.xyz * 0.003 * ConeTraceBias * 1.25 / SEGIVoxelScaleFactor;
-				
+
+				float3 gi = float3(0.0, 0.0, 0.0);
 				float4 traceResult = float4(0,0,0,0);
-				
 
 				const float phi = 1.618033988;
-				const float gAngle = phi * PI * 1.000;
+				const float gAngle = phi * PI * 1.0;
 
+				//Get blue noise
 				float2 noiseCoord = (input.uv.xy * _MainTex_TexelSize.zw) / (64.0).xx;
 				float blueNoise = tex2Dlod(NoiseTexture, float4(noiseCoord, 0.0, 0.0)).x;
 				
+				//Trace GI cones
 				int numSamples = TraceDirections;
 				for (int i = 0; i < numSamples; i++)
 				{
 					float fi = (float)i + blueNoise * StochasticSampling;
 					float fiN = fi / numSamples;
-					float longitude = gAngle * fi * 1;
+					float longitude = gAngle * fi;
 					float latitude = asin(fiN * 2.0 - 1.0);
 					
 					float3 kernel;
@@ -138,8 +135,6 @@ SubShader
 
 				gi *= 0.75 + (float)HalfResolution * 0.25;
 
-
-				//gi.rgb = blueNoise.xxx;
 				 
 				return float4(gi, 1.0);
 			}
@@ -147,7 +142,7 @@ SubShader
 		ENDCG
 	}
 	
-	Pass //1
+	Pass //1 Bilateral Blur
 	{
 		CGPROGRAM
 			#pragma vertex vert
@@ -166,10 +161,8 @@ SubShader
 			float4 frag(v2f input) : COLOR0
 			{
 				float4 blurred = float4(0.0, 0.0, 0.0, 0.0);
-				float4 blurredDumb = float4(0.0, 0.0, 0.0, 0.0);
 				float validWeights = 0.0;
 				float depth = LinearEyeDepth(tex2D(_CameraDepthTexture, input.uv.xy).x);
-				//half3 normal = DecodeViewNormalStereo(tex2D(_CameraDepthNormalsTexture, input.uv.xy));
 				half3 normal = normalize(tex2D(_CameraGBufferTexture2, input.uv.xy).rgb * 2.0 - 1.0);
 				float thresh = 0.26;
 				
@@ -179,30 +172,20 @@ SubShader
 				float NdotV = 1.0 / (saturate(dot(-viewVector, normal.xyz)) + 0.1);
 				thresh *= 1.0 + NdotV * 2.0;
 				
-				float2 sourceCoord = input.uv.xy;
-				sourceCoord /= _MainTex_TexelSize.xy;
-				sourceCoord /= 1;
-				sourceCoord = round(sourceCoord);
-				sourceCoord *= 1;
-				sourceCoord *= _MainTex_TexelSize.xy;
-				
 				for (int i = -4; i <= 4; i++)
 				{
 					float2 offs = Kernel.xy * (i) * _MainTex_TexelSize.xy * 1.0;
 					float sampleDepth = LinearEyeDepth(tex2Dlod(_CameraDepthTexture, float4(input.uv.xy + offs.xy * 1, 0, 0)).x);
-					//half3 sampleNormal = DecodeViewNormalStereo(tex2Dlod(_CameraDepthNormalsTexture, float4(input.uv.xy + offs.xy * 1, 0, 0)));
 					half3 sampleNormal = normalize(tex2Dlod(_CameraGBufferTexture2, float4(input.uv.xy + offs.xy * 1, 0, 0)).rgb * 2.0 - 1.0);
 					
 					float weight = saturate(1.0 - abs(depth - sampleDepth) / thresh);
 					weight *= pow(saturate(dot(sampleNormal, normal)), 24.0);
 					
 					float4 blurSample = tex2Dlod(_MainTex, float4(input.uv.xy + offs.xy, 0, 0)).rgba;
-					blurredDumb += blurSample;
 					blurred += blurSample * weight;
 					validWeights += weight;
 				}
 				
-				blurredDumb /= 13.0;
 				blurred /= validWeights + 0.001;
 				
 				return blurred;
@@ -211,7 +194,7 @@ SubShader
 		ENDCG
 	}		
 	
-	Pass //2
+	Pass //2 Blend with scene
 	{
 		CGPROGRAM
 			#pragma vertex vert
@@ -223,14 +206,8 @@ SubShader
 			sampler2D Reflections;
 			
 			
-			float4x4 ProjectionPrev;
-			float4x4 WorldToCameraPrev;
 			float4x4 CameraToWorld;
-			float DeltaTime;
 			
-			float SEGILeftBound;
-			float SEGIRightBound;
-
 			int DoReflections;
 
 			int HalfResolution;
@@ -242,14 +219,11 @@ SubShader
 #else
 				float2 coord = input.uv.xy;
 #endif
-
 				float4 albedoTex = tex2D(_CameraGBufferTexture0, input.uv.xy);
 				float3 albedo = albedoTex.rgb;
 				float3 gi = tex2D(GITexture, input.uv.xy).rgb;
 				float3 scene = tex2D(_MainTex, input.uv.xy).rgb;
 				float3 reflections = tex2D(Reflections, input.uv.xy).rgb;
-				
-				//gi *= 0.75 + (float)HalfResolution * 0.25;
 				
 				float3 result = scene + gi * albedoTex.a * albedoTex.rgb;
 
@@ -280,7 +254,7 @@ SubShader
 		ENDCG
 	}	
 	
-	Pass // 3
+	Pass //3 Temporal blend (with unity motion vectors)
 	{
 		CGPROGRAM
 			#pragma vertex vert
@@ -304,63 +278,41 @@ SubShader
 			
 			float4 frag(v2f input) : COLOR0
 			{
-				///*
 				float3 gi = tex2D(_MainTex, input.uv.xy).rgb;
 				
-				float2 depthLookupCoord = round(input.uv.xy * _MainTex_TexelSize.zw) * _MainTex_TexelSize.xy;
-				depthLookupCoord = input.uv.xy;
-				//float depth = tex2Dlod(_CameraDepthTexture, float4(depthLookupCoord, 0.0, 0.0)).x;
-				float depth = GetDepthTexture(depthLookupCoord);
+
+				float depth = GetDepthTexture(input.uv.xy);
 				
 				float4 currentPos = float4(input.uv.x * 2.0 - 1.0, input.uv.y * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
 				
 				float4 fragpos = mul(ProjectionMatrixInverse, currentPos);
-				float4 thisViewPos = fragpos;
 				fragpos = mul(CameraToWorld, fragpos); 
 				fragpos /= fragpos.w;
 				float4 thisWorldPosition = fragpos;
-				fragpos.xyz += CameraPosition.xyz * DeltaTime;
 				
-				float4 prevPos = fragpos;
-				prevPos.xyz -= CameraPositionPrev.xyz * DeltaTime;
-				prevPos = mul(WorldToCameraPrev, prevPos);
-				prevPos = mul(ProjectionPrev, prevPos);
-				prevPos /= prevPos.w;
 				
-				float2 diff = currentPos.xy - prevPos.xy;
 
 
 				float2 motionVectors = tex2Dlod(_CameraMotionVectorsTexture, float4(input.uv.xy, 0.0, 0.0)).xy;
-
-				
-				//float2 reprojCoord = input.uv.xy - diff.xy * 0.5;
 				float2 reprojCoord = input.uv.xy - motionVectors.xy;
-				float2 previousTexcoord = input.uv.xy + diff.xy * 0.5;
 				
 
-				float blendWeight = BlendWeight;
 				
 				float prevDepth = (tex2Dlod(PreviousDepth, float4(reprojCoord + _MainTex_TexelSize.xy * 0.0, 0.0, 0.0)).x);
 				#if defined(UNITY_REVERSED_Z)
 				prevDepth = 1.0 - prevDepth;
 				#endif
-				
+
 				float4 previousWorldPosition = mul(ProjectionPrevInverse, float4(reprojCoord.xy * 2.0 - 1.0, prevDepth * 2.0 - 1.0, 1.0));
 				previousWorldPosition = mul(CameraToWorldPrev, previousWorldPosition);
 				previousWorldPosition /= previousWorldPosition.w;
-				
-				if (distance(previousWorldPosition.xyz, thisWorldPosition.xyz) > 0.1 || reprojCoord.x > 1.0 || reprojCoord.x < 0.0 || reprojCoord.y > 1.0 || reprojCoord.y < 0.0)
-				{
-					//blendWeight = 1.0;
-				}
+
+
+				float blendWeight = BlendWeight;
 
 				float posSimilarity = saturate(1.0 - distance(previousWorldPosition.xyz, thisWorldPosition.xyz) * 1.0);
 				blendWeight = lerp(1.0, blendWeight, posSimilarity);
 
-				if (abs(depth - prevDepth) > 0.003)
-				{
-					//blendWeight = 1.0;
-				}
 
 
 
@@ -389,27 +341,12 @@ SubShader
 				
 				float3 result = gi;
 				return float4(result, 1.0);
-				//*/
-
-				/*
-				float3 gi = tex2D(_MainTex, input.uv.xy).rgb;
-
-				float2 depthLookupCoord = input.uv.xy;
-				float depth = tex2Dlod(_CameraDepthTexture, float4(depthLookupCoord, 0.0, 0.0)).x;
-
-				float2 motionVectors = tex2Dlod(_CameraMotionVectorsTexture, float4(input.uv.xy, 0.0, 0.0)).rg;
-
-				float2 reprojCoord = input.uv.xy - motionVectors.xy;
-				float2 previousTexcoord = input.uv.xy + motionVectors.xy;
-
-				float prevDepth = (tex2Dlod(PreviousDepth, float4(reprojCoord + _MainTex_TexelSize.xy * 0.0, 0.0, 0.0)).x);
-				*/
 			}	
 		
 		ENDCG
 	}
 	
-	Pass //4
+	Pass //4 Specular/reflections trace
 	{
 		ZTest Always
 	
@@ -480,7 +417,7 @@ SubShader
 		ENDCG
 	}
 	
-	Pass //5
+	Pass //5 Get camera depth texture
 	{
 		CGPROGRAM
 			#pragma vertex vert
@@ -496,7 +433,7 @@ SubShader
 		ENDCG
 	}
 	
-	Pass //6
+	Pass //6 Get camera normals texture
 	{
 		CGPROGRAM
 			#pragma vertex vert
@@ -514,7 +451,7 @@ SubShader
 	}	
 	
 	
-	Pass //7
+	Pass //7 Visualize GI
 	{
 		CGPROGRAM
 			#pragma vertex vert
@@ -527,7 +464,6 @@ SubShader
 				float4 albedoTex = tex2D(_CameraGBufferTexture0, input.uv.xy);
 				float3 albedo = albedoTex.rgb;
 				float3 gi = tex2D(GITexture, input.uv.xy).rgb;
-				//float3 mv = tex2D(_CameraMotionVectorsTexture, input.uv.xy).rgb;
 				return float4(gi, 1.0);
 			}		
 		
@@ -536,7 +472,7 @@ SubShader
 	
 	
 	
-	Pass //8
+	Pass //8 Write black
 	{
 		CGPROGRAM
 			#pragma vertex vert
@@ -550,7 +486,7 @@ SubShader
 		ENDCG
 	}
 	
-	Pass //9
+	Pass //9 Visualize slice of GI Volume (CURRENTLY UNUSED)
 	{
 		CGPROGRAM
 			#pragma vertex vert
@@ -570,7 +506,7 @@ SubShader
 	}
 	
 	
-	Pass //10
+	Pass //10 Visualize voxels (trace through GI volumes)
 	{
 ZTest Always
 	
@@ -601,8 +537,6 @@ ZTest Always
 					   voxelCameraPosition.xyz = voxelCameraPosition.xyz * 0.5 + 0.5;
 				
 				float4 result = VisualConeTrace(voxelCameraPosition.xyz, worldViewVector.xyz);
-
-				//result.rgb = lerp(float3(1.0, 1.0, 1.0), result.rgb, result.a);
 				
 				return float4(result.rgb, 1.0);
 			}
@@ -610,7 +544,7 @@ ZTest Always
 		ENDCG
 	}
 	
-	Pass //11
+	Pass //11 Bilateral upsample
 	{
 		CGPROGRAM
 			#pragma vertex vert
@@ -694,7 +628,7 @@ ZTest Always
 		ENDCG
 	}
 
-	Pass //12 Temporal blending without motion vectors
+	Pass //12 Temporal blending without motion vectors (for legacy support)
 	{
 		CGPROGRAM
 			#pragma vertex vert

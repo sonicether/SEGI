@@ -6,4 +6,6 @@ Check the Releases section above to download a version of SEGI that is a simple 
 
 You can also click the "Clone or Download" button and select "Download Zip", then extract the contents to "Assets/SEGI" in your project to test out the latest unreleased versions of SEGI.
 
+All the scripts and files for SEGI must be in "Assets/SEGI" for SEGI to fully function properly in your project.
+
 Please refer to the User Guide.pdf for usage instructions.

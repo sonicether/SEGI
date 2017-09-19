@@ -8099,20 +8099,6 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
-  m_FalloffTable:
-    m_Table[0]: 0
-    m_Table[1]: 0
-    m_Table[2]: 0
-    m_Table[3]: 0
-    m_Table[4]: 0
-    m_Table[5]: 0
-    m_Table[6]: 0
-    m_Table[7]: 0
-    m_Table[8]: 0
-    m_Table[9]: 0
-    m_Table[10]: 0
-    m_Table[11]: 0
-    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -10516,6 +10502,7 @@ GameObject:
   - component: {fileID: 1689627608}
   - component: {fileID: 1689627607}
   - component: {fileID: 1689627613}
+  - component: {fileID: 1689627610}
   m_Layer: 0
   m_Name: Camera
   m_TagString: MainCamera
@@ -10547,21 +10534,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 855c24b21068ca6449a4680af0c5645e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  voxelResolution: 256
-  visualizeSunDepthTexture: 0
-  visualizeGI: 0
-  sun: {fileID: 1297580667}
+  updateGI: 1
   giCullingMask:
     serializedVersion: 2
     m_Bits: 2147483647
   shadowSpaceSize: 50
-  temporalBlendWeight: 0.13
-  visualizeVoxels: 0
-  updateGI: 1
+  sun: {fileID: 1297580667}
   skyColor: {r: 0.43137258, g: 0.5764706, b: 0.8196079, a: 0}
   voxelSpaceSize: 200
   useBilateralFiltering: 0
   innerOcclusionLayers: 1
+  temporalBlendWeight: 0.13
+  voxelResolution: 256
+  visualizeSunDepthTexture: 0
+  visualizeGI: 0
+  visualizeVoxels: 0
   halfResolution: 1
   stochasticSampling: 1
   infiniteBounces: 1
@@ -10583,13 +10570,13 @@ MonoBehaviour:
   reflectionSteps: 73
   reflectionOcclusionPower: 1
   skyReflectionIntensity: 1
+  voxelAA: 1
+  gaussianMipFilter: 0
   farOcclusionStrength: 1
   farthestOcclusionStrength: 1
   secondaryCones: 6
   secondaryOcclusionStrength: 0.7
   sphericalSkylight: 0
-  gaussianMipFilter: 0
-  voxelAA: 1
 --- !u!81 &1689627608
 AudioListener:
   m_ObjectHideFlags: 0
@@ -10635,6 +10622,58 @@ Camera:
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
   m_StereoMirrorMode: 0
+--- !u!114 &1689627610
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1689627605}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f6545096e58f2445a95f9ff831d18fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  voxelResolution: 128
+  visualizeSunDepthTexture: 0
+  visualizeGI: 0
+  sun: {fileID: 1297580667}
+  giCullingMask:
+    serializedVersion: 2
+    m_Bits: 2147483647
+  shadowSpaceSize: 50
+  temporalBlendWeight: 0.1
+  visualizeVoxels: 0
+  updateGI: 1
+  skyColor: {r: 0.37647063, g: 0.50980395, b: 0.7411765, a: 0}
+  voxelSpaceSize: 50
+  useBilateralFiltering: 0
+  innerOcclusionLayers: 1
+  halfResolution: 0
+  stochasticSampling: 1
+  infiniteBounces: 0
+  followTransform: {fileID: 0}
+  cones: 4
+  coneTraceSteps: 10
+  coneLength: 1
+  coneWidth: 3.9
+  occlusionStrength: 0.15
+  nearOcclusionStrength: 0.5
+  occlusionPower: 0.65
+  coneTraceBias: 2.8
+  nearLightGain: 0.36
+  giGain: 1
+  secondaryBounceGain: 0.9
+  softSunlight: 0
+  skyIntensity: 1.19
+  reflectionSteps: 64
+  reflectionOcclusionPower: 1
+  skyReflectionIntensity: 1
+  farOcclusionStrength: 1
+  farthestOcclusionStrength: 1
+  secondaryCones: 6
+  secondaryOcclusionStrength: 0.27
+  sphericalSkylight: 0
+  voxelAA: 0
 --- !u!114 &1689627613
 MonoBehaviour:
   m_ObjectHideFlags: 0

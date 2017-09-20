@@ -887,7 +887,7 @@ public class SEGICascaded : MonoBehaviour
 
 			
 			float clipmapSize = voxelSpaceSize * activeClipmap.localScale;	//Determine the current clipmap's size in world units based on its scale
-			float voxelTexel = (1.0f * clipmapSize) / activeClipmap.resolution * 0.5f;	//Calculate the size of a voxel texel in world-space units
+			//float voxelTexel = (1.0f * clipmapSize) / activeClipmap.resolution * 0.5f;	//Calculate the size of a voxel texel in world-space units
 
 
 

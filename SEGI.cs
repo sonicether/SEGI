@@ -824,7 +824,7 @@ public class SEGI : MonoBehaviour
 			activeVolume = voxelFlipFlop == 0 ? volumeTextures[0] : volumeTextureB;				//Flip-flopping volume textures to avoid simultaneous read and write errors in shaders
 			previousActiveVolume = voxelFlipFlop == 0 ? volumeTextureB : volumeTextures[0];
 
-			float voxelTexel = (1.0f * voxelSpaceSize) / (int)voxelResolution * 0.5f;			//Calculate the size of a voxel texel in world-space units
+			//float voxelTexel = (1.0f * voxelSpaceSize) / (int)voxelResolution * 0.5f;			//Calculate the size of a voxel texel in world-space units
 
 
 

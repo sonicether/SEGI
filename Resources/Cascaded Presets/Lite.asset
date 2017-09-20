@@ -9,7 +9,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 195d4ee8e5f057f4590c043b132f9c86, type: 3}
-  m_Name: litegood 2
+  m_Name: Lite
   m_EditorClassIdentifier: 
   voxelResolution: 128
   voxelAA: 0

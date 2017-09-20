@@ -71,7 +71,7 @@ public class SEGICascadedEditor : Editor
 	bool showTracingProperties = true;
 	bool showEnvironmentProperties = true;
 	bool showPresets = true;
-	bool showReflectionProperties = true;
+	//bool showReflectionProperties = true;
 
 	string presetToSaveName;
 

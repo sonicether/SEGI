@@ -436,7 +436,7 @@ public class SEGI : MonoBehaviour
 		#if UNITY_5_4_OR_NEWER
 		secondaryIrradianceVolume.autoGenerateMips = false;
 		#else
-		volumeTexture1.generateMips = false;
+		secondaryIrradianceVolume.generateMips = false;
 		#endif
 		secondaryIrradianceVolume.useMipMap = false;
 		secondaryIrradianceVolume.antiAliasing = 1;

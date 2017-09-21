@@ -1,5 +1,14 @@
+<p align="center">
+  <img src="https://i.imgur.com/gtkjoxj.png">
+</p>
+
 # SEGI
 A fully-dynamic voxel-based global illumination system for Unity. More details at http://www.sonicether.com/segi/
+
+<p align="center" style="display: inline-block;">
+  <img height="244px" width="434px" src="https://i.imgur.com/xoR4ab6.jpg">
+  <img height="244px" width="434px" src="https://i.imgur.com/m0S2k0C.jpg">
+</p>
 
 # Installation
 Check the [Releases](https://github.com/sonicether/SEGI/releases) section above to download a version of SEGI that is a simple .unitypackage file which is ready for you to import into your project. 

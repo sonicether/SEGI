@@ -1,7 +1,5 @@
-﻿#pragma warning disable 0618
-#pragma warning disable 0414
-
 using UnityEngine;
+using UnityEngine.Rendering;
 using System.Collections;
 using System;
 using System.IO;
@@ -388,7 +386,11 @@ public class SEGI : MonoBehaviour
 			}
 			int resolution = (int)voxelResolution / Mathf.RoundToInt(Mathf.Pow((float)2, (float)i));
 			volumeTextures[i] = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+			#if UNITY_5_4_OR_NEWER
+			volumeTextures[i].dimension = TextureDimension.Tex3D;
+			#else
 			volumeTextures[i].isVolume = true;
+			#endif
 			volumeTextures[i].volumeDepth = resolution;
 			volumeTextures[i].enableRandomWrite = true;
 			volumeTextures[i].filterMode = FilterMode.Bilinear;
@@ -409,7 +411,11 @@ public class SEGI : MonoBehaviour
 			DestroyImmediate(volumeTextureB);
 		}
 		volumeTextureB = new RenderTexture((int)voxelResolution, (int)voxelResolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+		#if UNITY_5_4_OR_NEWER
+		volumeTextureB.dimension = TextureDimension.Tex3D;
+		#else
 		volumeTextureB.isVolume = true;
+		#endif
 		volumeTextureB.volumeDepth = (int)voxelResolution;
 		volumeTextureB.enableRandomWrite = true;
 		volumeTextureB.filterMode = FilterMode.Bilinear;
@@ -429,7 +435,11 @@ public class SEGI : MonoBehaviour
 			DestroyImmediate(secondaryIrradianceVolume);
 		}
 		secondaryIrradianceVolume = new RenderTexture((int)voxelResolution, (int)voxelResolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+		#if UNITY_5_4_OR_NEWER
+		secondaryIrradianceVolume.dimension = TextureDimension.Tex3D;
+		#else
 		secondaryIrradianceVolume.isVolume = true;
+		#endif
 		secondaryIrradianceVolume.volumeDepth = (int)voxelResolution;
 		secondaryIrradianceVolume.enableRandomWrite = true;
 		secondaryIrradianceVolume.filterMode = FilterMode.Point;
@@ -452,7 +462,11 @@ public class SEGI : MonoBehaviour
 			DestroyImmediate(integerVolume);
 		}
 		integerVolume = new RenderTexture((int)voxelResolution, (int)voxelResolution, 0, RenderTextureFormat.RInt, RenderTextureReadWrite.Linear);
+		#if UNITY_5_4_OR_NEWER
+		integerVolume.dimension = TextureDimension.Tex3D;
+		#else
 		integerVolume.isVolume = true;
+		#endif
 		integerVolume.volumeDepth = (int)voxelResolution;
 		integerVolume.enableRandomWrite = true;
 		integerVolume.filterMode = FilterMode.Point;

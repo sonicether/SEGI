@@ -301,6 +301,16 @@ public class SEGICascaded : MonoBehaviour
 				}
 			}
 			
+			if (irradianceClipmaps != null)
+			{
+				for (int i = 0; i < numClipmaps; i++)
+				{
+					if (irradianceClipmaps[i] != null)
+					{
+						v += irradianceClipmaps[i].volumeTexture0.width * irradianceClipmaps[i].volumeTexture0.height * irradianceClipmaps[i].volumeTexture0.volumeDepth * 16 * 4;
+					}
+				}
+			}	
 
 			float vram = (v / 8388608.0f);
 
@@ -461,6 +471,17 @@ public class SEGICascaded : MonoBehaviour
 
 	void BuildClipmaps()
 	{
+		if (clipmaps != null)
+		{
+			for (int i = 0; i < numClipmaps; i++)
+			{
+				if (clipmaps[i] != null)
+				{
+					clipmaps[i].CleanupTextures();
+				}
+			}
+		}
+		
 		clipmaps = new Clipmap[numClipmaps];
 
 		for (int i = 0; i < numClipmaps; i++)
@@ -473,6 +494,17 @@ public class SEGICascaded : MonoBehaviour
 			clipmaps[i].UpdateTextures();
 		}
 
+		if (irradianceClipmaps != null)
+		{
+			for (int i = 0; i < numClipmaps; i++)
+			{
+				if (irradianceClipmaps[i] != null)
+				{
+					irradianceClipmaps[i].CleanupTextures();
+				}
+			}
+		}
+		
 		irradianceClipmaps = new Clipmap[numClipmaps];
 
 		for (int i = 0; i < numClipmaps; i++)
@@ -704,9 +736,20 @@ public class SEGICascaded : MonoBehaviour
 		{
 			for (int i = 0; i < numClipmaps; i++)
 			{
-				if (clipmaps[0] != null)
+				if (clipmaps[i] != null)
 				{
-					clipmaps[0].CleanupTextures();
+					clipmaps[i].CleanupTextures();
+				}
+			}
+		}
+				
+		if (irradianceClipmaps != null)
+		{
+			for (int i = 0; i < numClipmaps; i++)
+			{
+				if (irradianceClipmaps[i] != null)
+				{
+					irradianceClipmaps[i].CleanupTextures();
 				}
 			}
 		}

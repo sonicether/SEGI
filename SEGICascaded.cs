@@ -1,7 +1,5 @@
-﻿#pragma warning disable 0618
-#pragma warning disable 0414
-
 using UnityEngine;
+using UnityEngine.Rendering;
 using System.Collections;
 using System;
 using System.IO;
@@ -332,7 +330,11 @@ public class SEGICascaded : MonoBehaviour
 			}
 			volumeTexture0 = new RenderTexture(resolution, resolution, 0, renderTextureFormat, RenderTextureReadWrite.Linear);
 			volumeTexture0.wrapMode = TextureWrapMode.Clamp;
+			#if UNITY_5_4_OR_NEWER
+			volumeTexture0.dimension = TextureDimension.Tex3D;
+			#else
 			volumeTexture0.isVolume = true;
+			#endif
 			volumeTexture0.volumeDepth = resolution;
 			volumeTexture0.enableRandomWrite = true;
 			volumeTexture0.filterMode = filterMode;
@@ -449,7 +451,11 @@ public class SEGICascaded : MonoBehaviour
 			DestroyImmediate(integerVolume);
 		}
 		integerVolume = new RenderTexture((int)voxelResolution, (int)voxelResolution, 0, RenderTextureFormat.RInt, RenderTextureReadWrite.Linear);
+		#if UNITY_5_4_OR_NEWER
+		integerVolume.dimension = TextureDimension.Tex3D;
+		#else
 		integerVolume.isVolume = true;
+		#endif
 		integerVolume.volumeDepth = (int)voxelResolution;
 		integerVolume.enableRandomWrite = true;
 		integerVolume.filterMode = FilterMode.Point;

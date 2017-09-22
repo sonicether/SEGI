@@ -89,7 +89,8 @@
 				void geom(triangle v2g input[3], inout TriangleStream<g2f> triStream)
 				{
 					v2g p[3];
-					for (int i = 0; i < 3; i++)
+					int i = 0;
+					for (i = 0; i < 3; i++)
 					{
 						p[i] = input[i];
 						p[i].pos = UnityObjectToClipPos(p[i].pos);	
@@ -128,7 +129,7 @@
 						angle = 0;
 					}
 					
-					for (int i = 0; i < 3; i ++)
+					for (i = 0; i < 3; i ++)
 					{
 						float3 op = p[i].pos.xyz * float3(1.0, 1.0, 1.0);
 						op.z = op.z * 2.0 - 1.0;
@@ -341,7 +342,7 @@
 					
 					const float sqrt2 = sqrt(2.0) * 1.2;
 
-					coord /= SEGIVoxelAA + 1;
+					coord /= (uint)SEGIVoxelAA + 1u;
 
 
 					if (_BlockerValue > 0.01)

@@ -14,7 +14,7 @@ float4 ClipmapOverlap;
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    for (int i = 0; i < destinationRes / 2; i++)
+    for (uint i = 0; i < (uint)destinationRes / 2u; i++)
     {
         float3 fcoord = float3((float)id.x / destinationRes, (float)id.y / destinationRes, (float)i / destinationRes);
 		fcoord *= 2.0;

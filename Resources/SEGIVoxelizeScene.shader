@@ -63,6 +63,7 @@
 				v2g vert(appdata_full v)
 				{
 					v2g o;
+					UNITY_INITIALIZE_OUTPUT(v2g, o);
 					
 					float4 vertex = v.vertex;
 					
@@ -83,7 +84,8 @@
 				void geom(triangle v2g input[3], inout TriangleStream<g2f> triStream)
 				{
 					v2g p[3];
-					for (int i = 0; i < 3; i++)
+					int i = 0;
+					for (i = 0; i < 3; i++)
 					{
 						p[i] = input[i];
 						p[i].pos = mul(unity_ObjectToWorld, p[i].pos);						
@@ -121,7 +123,7 @@
 						angle = 0;
 					}
 					
-					for (int i = 0; i < 3; i ++)
+					for (i = 0; i < 3; i ++)
 					{
 						///*
 						if (angle == 0)
@@ -231,19 +233,16 @@
 
 				void interlockedAddFloat4b(RWTexture3D<uint> destination, int3 coord, float4 value)
 				{
-					uint writeValue = EncodeRGBAuint(value);
-					uint compareValue = 0;
-					uint originalValue;
+					uint comp;
+					uint orig = destination[coord];
 
-					[allow_uav_condition] for (int i = 0; i < 1; i++)
+					[allow_uav_condition]
+					do
 					{
-						InterlockedCompareExchange(destination[coord], compareValue, writeValue, originalValue);
-						if (compareValue == originalValue)
-							break;
-						compareValue = originalValue;
-						float4 originalValueFloats = DecodeRGBAuint(originalValue);
-						writeValue = EncodeRGBAuint(originalValueFloats + value);
-					}
+						comp = orig;
+						InterlockedCompareExchange(destination[coord], comp, EncodeRGBAuint(max(DecodeRGBAuint(orig), value)), orig);
+					} 
+					while (orig != comp);
 				}
 
 				float4x4 SEGIVoxelToGIProjection;
@@ -318,9 +317,8 @@
 
 					
 					const float sqrt2 = sqrt(2.0) * 1.0;
-
-					coord /= SEGIVoxelAA + 1;
-
+					
+					coord /= (uint)SEGIVoxelAA + 1u;
 
 
 					if (_BlockerValue > 0.01)

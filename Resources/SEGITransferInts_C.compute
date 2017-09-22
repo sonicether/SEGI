@@ -82,11 +82,13 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
 		//if (refcoord.x > maxCoord || refcoord.x < minCoord || refcoord.y > maxCoord || refcoord.y < minCoord || refcoord.z > maxCoord || refcoord.z < minCoord)
 		*/
-
+		
+		/*
 		if (id.x == 0 || id.x == Resolution - 1 || id.y == 0 || id.y == Resolution - 1 || i == 0 || i == Resolution - 1)
 		{
 			//result = float4(0.0, 0.0, 0.0, 0.0);
 		}
+		*/
 		
 		Result[uint3(id.xy, i)] = result;
 

@@ -934,8 +934,8 @@ public class SEGICascaded : MonoBehaviour
 				prevClipmap = clipmaps[currentClipmapIndex - 1];
             }
 
-			
-			float clipmapSize = voxelSpaceSize * activeClipmap.localScale;	//Determine the current clipmap's size in world units based on its scale
+            float clipmapShadowSize = shadowSpaceSize * activeClipmap.localScale;
+            float clipmapSize = voxelSpaceSize * activeClipmap.localScale;	//Determine the current clipmap's size in world units based on its scale
 			//float voxelTexel = (1.0f * clipmapSize) / activeClipmap.resolution * 0.5f;	//Calculate the size of a voxel texel in world-space units
 
 
@@ -1014,10 +1014,10 @@ public class SEGICascaded : MonoBehaviour
 
 
 			//Set matrices needed for voxelization
-			Shader.SetGlobalMatrix("WorldToGI", shadowCam.worldToCameraMatrix);
-			Shader.SetGlobalMatrix("GIToWorld", shadowCam.cameraToWorldMatrix);
-			Shader.SetGlobalMatrix("GIProjection", shadowCam.projectionMatrix);
-			Shader.SetGlobalMatrix("GIProjectionInverse", shadowCam.projectionMatrix.inverse);
+			//Shader.SetGlobalMatrix("WorldToGI", shadowCam.worldToCameraMatrix);
+			//Shader.SetGlobalMatrix("GIToWorld", shadowCam.cameraToWorldMatrix);
+			//Shader.SetGlobalMatrix("GIProjection", shadowCam.projectionMatrix);
+			//Shader.SetGlobalMatrix("GIProjectionInverse", shadowCam.projectionMatrix.inverse);
 			Shader.SetGlobalMatrix("WorldToCamera", attachedCamera.worldToCameraMatrix);
 			Shader.SetGlobalFloat("GIDepthRatio", shadowSpaceDepthRatio);
 			
@@ -1063,7 +1063,7 @@ public class SEGICascaded : MonoBehaviour
 			{
 				shadowCam.cullingMask = giCullingMask;
 
-				Vector3 shadowCamPosition = activeClipmap.origin + Vector3.Normalize(-sun.transform.forward) * shadowSpaceSize * 0.5f * shadowSpaceDepthRatio;
+				Vector3 shadowCamPosition = activeClipmap.origin + Vector3.Normalize(-sun.transform.forward) * clipmapShadowSize * 0.5f * shadowSpaceDepthRatio;
 
 				shadowCamTransform.position = shadowCamPosition;
 				shadowCamTransform.LookAt(activeClipmap.origin, Vector3.up);
@@ -1071,8 +1071,15 @@ public class SEGICascaded : MonoBehaviour
 				shadowCam.renderingPath = RenderingPath.Forward;
 				shadowCam.depthTextureMode |= DepthTextureMode.None;
 
-				shadowCam.orthographicSize = shadowSpaceSize;
-				shadowCam.farClipPlane = shadowSpaceSize * 2.0f * shadowSpaceDepthRatio;
+				shadowCam.orthographicSize = clipmapShadowSize;
+				shadowCam.farClipPlane = clipmapShadowSize * 2.0f * shadowSpaceDepthRatio;
+
+                //Shader.SetGlobalMatrix("WorldToGI", shadowCam.worldToCameraMatrix);
+                //Shader.SetGlobalMatrix("GIToWorld", shadowCam.cameraToWorldMatrix);
+                //Shader.SetGlobalMatrix("GIProjection", shadowCam.projectionMatrix);
+                //Shader.SetGlobalMatrix("GIProjectionInverse", shadowCam.projectionMatrix.inverse);
+                voxelToGIProjection = shadowCam.projectionMatrix * shadowCam.worldToCameraMatrix * voxelCamera.cameraToWorldMatrix;
+                Shader.SetGlobalMatrix("SEGIVoxelToGIProjection", voxelToGIProjection);
 
 
 				Graphics.SetRenderTarget(sunDepthTexture);

@@ -233,19 +233,16 @@
 
 				void interlockedAddFloat4b(RWTexture3D<uint> destination, int3 coord, float4 value)
 				{
-					uint writeValue = EncodeRGBAuint(value);
-					uint compareValue = 0;
-					uint originalValue;
+					uint comp;
+					uint orig = destination[coord];
 
-					[allow_uav_condition] for (int i = 0; i < 1; i++)
+					[allow_uav_condition]
+					do
 					{
-						InterlockedCompareExchange(destination[coord], compareValue, writeValue, originalValue);
-						if (compareValue == originalValue)
-							break;
-						compareValue = originalValue;
-						float4 originalValueFloats = DecodeRGBAuint(originalValue);
-						writeValue = EncodeRGBAuint(originalValueFloats + value);
-					}
+						comp = orig;
+						InterlockedCompareExchange(destination[coord], comp, EncodeRGBAuint(max(DecodeRGBAuint(orig), value)), orig);
+					} 
+					while (orig != comp);
 				}
 
 				float4x4 SEGIVoxelToGIProjection;

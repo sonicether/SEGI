@@ -655,6 +655,9 @@ public class SEGI : MonoBehaviour
 
 	void OnDrawGizmosSelected()
 	{
+		if (!enabled)
+			return;
+			
 		Color prevColor = Gizmos.color;
 		Gizmos.color = new Color(1.0f, 0.25f, 0.0f, 0.5f);
 

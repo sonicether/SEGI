@@ -8,6 +8,9 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 
 [ExecuteInEditMode]
+#if UNITY_5_4_OR_NEWER
+[ImageEffectAllowedInSceneView]
+#endif
 [RequireComponent(typeof(Camera))]
 [AddComponentMenu("Image Effects/Sonic Ether/SEGI")]
 public class SEGI : MonoBehaviour
@@ -655,6 +658,9 @@ public class SEGI : MonoBehaviour
 
 	void OnDrawGizmosSelected()
 	{
+		if (!enabled)
+			return;
+			
 		Color prevColor = Gizmos.color;
 		Gizmos.color = new Color(1.0f, 0.25f, 0.0f, 0.5f);
 
@@ -667,8 +673,12 @@ public class SEGI : MonoBehaviour
 
 	void CleanupTexture(ref RenderTexture texture)
 	{
-		texture.DiscardContents();
-		DestroyImmediate(texture);
+		if (texture)
+		{
+			texture.DiscardContents();
+			texture.Release();
+			DestroyImmediate(texture);
+		}
 	}
 
 	void CleanupTextures()
@@ -815,6 +825,10 @@ public class SEGI : MonoBehaviour
 
 	void OnPreRender()
 	{
+		//Force reinitialization to make sure that everything is working properly if one of the cameras was unexpectedly destroyed
+		if (!voxelCamera || !shadowCam)
+			initChecker = null;
+			
 		InitCheck();
 
 		if (notReadyToRender)

@@ -584,7 +584,7 @@ public class SEGICascaded : MonoBehaviour
 
 		//Get the camera attached to this game object
 		attachedCamera = this.GetComponent<Camera>();
-		attachedCamera.depthTextureMode |= DepthTextureMode.Depth
+		attachedCamera.depthTextureMode |= DepthTextureMode.Depth;
 		attachedCamera.depthTextureMode |= DepthTextureMode.DepthNormals;
 		#if UNITY_5_4_OR_NEWER
 		attachedCamera.depthTextureMode |= DepthTextureMode.MotionVectors;

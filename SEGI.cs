@@ -520,14 +520,11 @@ public class SEGI : MonoBehaviour
 
 
 		//Get the camera attached to this game object
-		//Apply depth render flags
 		attachedCamera = this.GetComponent<Camera>();
-#if UNITY_5_4_OR_NEWER
-		attachedCamera.depthTextureMode |= DepthTextureMode.Depth;
+		attachedCamera.depthTextureMode |= DepthTextureMode.Depth
+		#if UNITY_5_4_OR_NEWER
 		attachedCamera.depthTextureMode |= DepthTextureMode.MotionVectors;
-#else
-		attachedCamera.depthTextureMode |= DepthTextureMode.Depth;
-#endif
+		#endif
 
 
 		//Find the proxy shadow rendering camera if it exists

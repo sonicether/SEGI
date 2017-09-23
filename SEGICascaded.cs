@@ -582,16 +582,12 @@ public class SEGICascaded : MonoBehaviour
 		material.hideFlags = HideFlags.HideAndDontSave;
 
 
-
-
 		//Get the camera attached to this game object
-		//Apply depth render flags
 		attachedCamera = this.GetComponent<Camera>();
-		attachedCamera.depthTextureMode |= DepthTextureMode.Depth;
-		attachedCamera.depthTextureMode |= DepthTextureMode.DepthNormals;
+		attachedCamera.depthTextureMode |= DepthTextureMode.Depth
+		#if UNITY_5_4_OR_NEWER
 		attachedCamera.depthTextureMode |= DepthTextureMode.MotionVectors;
-
-
+		#endif
 
 
 		//Find the proxy shadow rendering camera if it exists

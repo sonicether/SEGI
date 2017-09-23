@@ -670,8 +670,12 @@ public class SEGI : MonoBehaviour
 
 	void CleanupTexture(ref RenderTexture texture)
 	{
-		texture.DiscardContents();
-		DestroyImmediate(texture);
+		if (texture)
+		{
+			texture.DiscardContents();
+			texture.Release();
+			DestroyImmediate(texture);
+		}
 	}
 
 	void CleanupTextures()

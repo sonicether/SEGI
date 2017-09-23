@@ -63,6 +63,7 @@
 				v2g vert(appdata_full v)
 				{
 					v2g o;
+					UNITY_INITIALIZE_OUTPUT(v2g, o);
 					
 					float4 vertex = v.vertex;
 					
@@ -82,7 +83,9 @@
 				void geom(triangle v2g input[3], inout TriangleStream<g2f> triStream)
 				{
 					v2g p[3];
-					for (int i = 0; i < 3; i++)
+					int i = 0;
+					
+					for (i = 0; i < 3; i++)
 					{
 						p[i] = input[i];
 						p[i].pos = mul(unity_ObjectToWorld, p[i].pos);						
@@ -119,7 +122,7 @@
 						angle = 0;
 					}
 					
-					for (int i = 0; i < 3; i ++)
+					for (i = 0; i < 3; i ++)
 					{
 						if (angle == 0)
 						{

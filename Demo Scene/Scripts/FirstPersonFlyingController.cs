@@ -28,8 +28,7 @@ public class FirstPersonFlyingController : MonoBehaviour
 		t = GetComponent<Transform>();
 	}
 	
-	// Update is called once per frame
-	void Update () 
+	void LateUpdate () 
 	{
 //		if (DemoAnimation.instance.demoMode == DemoAnimation.DemoMode.Interactive)
 //		{

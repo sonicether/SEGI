@@ -7,6 +7,9 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
 [ExecuteInEditMode]
+#if UNITY_5_4_OR_NEWER
+[ImageEffectAllowedInSceneView]
+#endif
 [RequireComponent(typeof(Camera))]
 [AddComponentMenu("Image Effects/Sonic Ether/SEGI (Cascaded)")]
 public class SEGICascaded : MonoBehaviour
@@ -897,6 +900,10 @@ public class SEGICascaded : MonoBehaviour
 
 	void OnPreRender()
 	{
+		//Force reinitialization to make sure that everything is working properly if one of the cameras was unexpectedly destroyed
+		if (!voxelCamera || !shadowCam)
+			initChecker = null;
+	
 		InitCheck();
 
 		if (notReadyToRender)

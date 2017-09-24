@@ -514,10 +514,11 @@ public class SEGI : MonoBehaviour
 
 		voxelizationShader = Shader.Find("Hidden/SEGIVoxelizeScene");
 		voxelTracingShader = Shader.Find("Hidden/SEGITraceScene");
-
-		material = new Material(Shader.Find("Hidden/SEGI"));
-		material.hideFlags = HideFlags.HideAndDontSave;
-
+		
+		if (!material) {
+			material = new Material(Shader.Find("Hidden/SEGI"));
+			material.hideFlags = HideFlags.HideAndDontSave;
+		}
 
 		//Get the camera attached to this game object
 		//Apply depth render flags
@@ -540,7 +541,6 @@ public class SEGI : MonoBehaviour
 			shadowCam = shadowCamGameObject.AddComponent<Camera>();
 			shadowCamGameObject.hideFlags = HideFlags.HideAndDontSave;
 
-
 			shadowCam.enabled = false;
 			shadowCam.depth = attachedCamera.depth - 1;
 			shadowCam.orthographic = true;
@@ -559,63 +559,71 @@ public class SEGI : MonoBehaviour
 			shadowCam = scgo.GetComponent<Camera>();
 			shadowCamTransform = shadowCamGameObject.transform;
 		}
-
-
 		
 		//Create the proxy camera objects responsible for rendering the scene to voxelize the scene. If they already exist, destroy them
 		GameObject vcgo = GameObject.Find("SEGI_VOXEL_CAMERA");
-		if (vcgo)
-			DestroyImmediate(vcgo);
+		
+		if (!vcgo) {
+			voxelCameraGO = new GameObject("SEGI_VOXEL_CAMERA");
+			voxelCameraGO.hideFlags = HideFlags.HideAndDontSave;
 
-		voxelCameraGO = new GameObject("SEGI_VOXEL_CAMERA");
-		voxelCameraGO.hideFlags = HideFlags.HideAndDontSave;
-
-		voxelCamera = voxelCameraGO.AddComponent<Camera>();
-		voxelCamera.enabled = false;
-		voxelCamera.orthographic = true;
-		voxelCamera.orthographicSize = voxelSpaceSize * 0.5f;
-		voxelCamera.nearClipPlane = 0.0f;
-		voxelCamera.farClipPlane = voxelSpaceSize;
-		voxelCamera.depth = -2;
-		voxelCamera.renderingPath = RenderingPath.Forward;
-		voxelCamera.clearFlags = CameraClearFlags.Color;
-		voxelCamera.backgroundColor = Color.black;
-		voxelCamera.useOcclusionCulling = false;
+			voxelCamera = voxelCameraGO.AddComponent<Camera>();
+			voxelCamera.enabled = false;
+			voxelCamera.orthographic = true;
+			voxelCamera.orthographicSize = voxelSpaceSize * 0.5f;
+			voxelCamera.nearClipPlane = 0.0f;
+			voxelCamera.farClipPlane = voxelSpaceSize;
+			voxelCamera.depth = -2;
+			voxelCamera.renderingPath = RenderingPath.Forward;
+			voxelCamera.clearFlags = CameraClearFlags.Color;
+			voxelCamera.backgroundColor = Color.black;
+			voxelCamera.useOcclusionCulling = false;
+		}
+		else
+		{
+			voxelCameraGO = vcgo;
+			voxelCamera = vcgo.GetComponent<Camera>();
+		}
 
 		GameObject lvp = GameObject.Find("SEGI_LEFT_VOXEL_VIEW");
-		if (lvp)
-			DestroyImmediate(lvp);
-
-		leftViewPoint = new GameObject("SEGI_LEFT_VOXEL_VIEW");
-		leftViewPoint.hideFlags = HideFlags.HideAndDontSave;
-
+		
+		if (!lvp) {
+			leftViewPoint = new GameObject("SEGI_LEFT_VOXEL_VIEW");
+			leftViewPoint.hideFlags = HideFlags.HideAndDontSave;
+		}
+		else
+		{
+			leftViewPoint = lvp;
+		}
+		
 		GameObject tvp = GameObject.Find("SEGI_TOP_VOXEL_VIEW");
-		if (tvp)
-			DestroyImmediate(tvp);
+		
+		if (!tvp) {
+			topViewPoint = new GameObject("SEGI_TOP_VOXEL_VIEW");
+			topViewPoint.hideFlags = HideFlags.HideAndDontSave;
+		}
+		else
+		{
+			topViewPoint = tvp;
+		}
 
-		topViewPoint = new GameObject("SEGI_TOP_VOXEL_VIEW");
-		topViewPoint.hideFlags = HideFlags.HideAndDontSave;
+		//Get blue noise textures
+		blueNoise = null;
+		blueNoise = new Texture2D[64];
+		for (int i = 0; i < 64; i++)
+		{
+		    string fileName = "LDR_RGBA_" + i.ToString();
+		    Texture2D blueNoiseTexture = Resources.Load("Noise Textures/" + fileName) as Texture2D;
 
+		    if (blueNoiseTexture == null)
+		    {
+			Debug.LogWarning("Unable to find noise texture \"Assets/SEGI/Resources/Noise Textures/" + fileName + "\" for SEGI!");
+		    } 
 
-        //Get blue noise textures
-        blueNoise = null;
-        blueNoise = new Texture2D[64];
-        for (int i = 0; i < 64; i++)
-        {
-            string fileName = "LDR_RGBA_" + i.ToString();
-            Texture2D blueNoiseTexture = Resources.Load("Noise Textures/" + fileName) as Texture2D;
+		    blueNoise[i] = blueNoiseTexture;
 
-            if (blueNoiseTexture == null)
-            {
-                Debug.LogWarning("Unable to find noise texture \"Assets/SEGI/Resources/Noise Textures/" + fileName + "\" for SEGI!");
-            } 
-
-            blueNoise[i] = blueNoiseTexture;
-
-        }
-        
-
-
+		}
+	
 		//Setup sun depth texture
 		if (sunDepthTexture)
 		{
@@ -865,6 +873,7 @@ public class SEGI : MonoBehaviour
 			}
 			else
 			{
+				//GI is still flickering a bit when the scene view and the game view are opened at the same time
 				origin = transform.position + transform.forward * voxelSpaceSize / 4.0f;
 			}
 			//Lock the voxel volume origin based on the interval

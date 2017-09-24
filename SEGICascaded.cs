@@ -189,16 +189,9 @@ public class SEGICascaded : MonoBehaviour
 		}
 	}
 
-	Vector3 voxelSpaceOrigin;
-	Vector3 previousVoxelSpaceOrigin;
-	Vector3 voxelSpaceOriginDelta;
-
-
 	Quaternion rotationFront = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
 	Quaternion rotationLeft = new Quaternion(0.0f, 0.7f, 0.0f, 0.7f);
 	Quaternion rotationTop = new Quaternion(0.7f, 0.0f, 0.0f, 0.7f);
-
-
 
 	int giRenderRes
 	{

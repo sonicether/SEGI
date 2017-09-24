@@ -224,30 +224,38 @@
 
 				void interlockedAddFloat4(RWTexture3D<uint> destination, int3 coord, float4 value)
 				{
-					uint comp;
-					uint orig = destination[coord];
+					uint writeValue = EncodeRGBAuint(value);
+					uint compareValue = 0;
+					uint originalValue;
 
 					[allow_uav_condition]
-					do
+					while (true)
 					{
-						comp = orig;
-						InterlockedCompareExchange(destination[coord], comp, EncodeRGBAuint(max(DecodeRGBAuint(orig), value)), orig);
-					} 
-					while (orig != comp);
+						InterlockedCompareExchange(destination[coord], compareValue, writeValue, originalValue);
+						if (compareValue == originalValue)
+							break;
+						compareValue = originalValue;
+						float4 originalValueFloats = DecodeRGBAuint(originalValue);
+						writeValue = EncodeRGBAuint(originalValueFloats + value);
+					}
 				}
 
 				void interlockedAddFloat4b(RWTexture3D<uint> destination, int3 coord, float4 value)
 				{
-					uint comp;
-					uint orig = destination[coord];
+					uint writeValue = EncodeRGBAuint(value);
+					uint compareValue = 0;
+					uint originalValue;
 
 					[allow_uav_condition]
-					do
+					while (true)
 					{
-						comp = orig;
-						InterlockedCompareExchange(destination[coord], comp, EncodeRGBAuint(max(DecodeRGBAuint(orig), value)), orig);
-					} 
-					while (orig != comp);
+						InterlockedCompareExchange(destination[coord], compareValue, writeValue, originalValue);
+						if (compareValue == originalValue)
+							break;
+						compareValue = originalValue;
+						float4 originalValueFloats = DecodeRGBAuint(originalValue);
+						writeValue = EncodeRGBAuint(originalValueFloats + value);
+					}
 				}
 
 				float4x4 SEGIVoxelToGIProjection;

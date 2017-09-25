@@ -286,7 +286,7 @@ public class SEGIEditor : Editor
 
 	void SavePreset(string name)
 	{
-		if (name == "")
+		if (name == null || name.Trim() == string.Empty)
 		{
 			Debug.LogWarning("SEGI: Type in a name for the preset to be saved!");
 			return; 

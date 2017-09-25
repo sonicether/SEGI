@@ -377,16 +377,22 @@ public class SEGI : MonoBehaviour
 
 	void CreateVolumeTextures()
 	{
+		if (volumeTextures != null)
+		{
+			for (int i = 0; i < numMipLevels; i++)
+			{
+				if (volumeTextures[i] != null) {
+					volumeTextures[i].DiscardContents();
+					volumeTextures[i].Release();
+					DestroyImmediate(volumeTextures[i]);
+				}
+			}			
+		}
+		
 		volumeTextures = new RenderTexture[numMipLevels];
 
 		for (int i = 0; i < numMipLevels; i++)
 		{
-			if (volumeTextures[i])
-			{
-				volumeTextures[i].DiscardContents();
-				volumeTextures[i].Release();
-				DestroyImmediate(volumeTextures[i]);
-			}
 			int resolution = (int)voxelResolution / Mathf.RoundToInt(Mathf.Pow((float)2, (float)i));
 			volumeTextures[i] = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
 			#if UNITY_5_4_OR_NEWER

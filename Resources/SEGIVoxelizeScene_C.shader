@@ -63,6 +63,7 @@
 				v2g vert(appdata_full v)
 				{
 					v2g o;
+					UNITY_INITIALIZE_OUTPUT(v2g, o);
 					
 					float4 vertex = v.vertex;
 					

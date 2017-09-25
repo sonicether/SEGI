@@ -189,16 +189,9 @@ public class SEGICascaded : MonoBehaviour
 		}
 	}
 
-	Vector3 voxelSpaceOrigin;
-	Vector3 previousVoxelSpaceOrigin;
-	Vector3 voxelSpaceOriginDelta;
-
-
 	Quaternion rotationFront = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
 	Quaternion rotationLeft = new Quaternion(0.0f, 0.7f, 0.0f, 0.7f);
 	Quaternion rotationTop = new Quaternion(0.7f, 0.0f, 0.0f, 0.7f);
-
-
 
 	int giRenderRes
 	{
@@ -578,20 +571,18 @@ public class SEGICascaded : MonoBehaviour
 		voxelizationShader = Shader.Find("Hidden/SEGIVoxelizeScene_C");
 		voxelTracingShader = Shader.Find("Hidden/SEGITraceScene_C");
 
-		material = new Material(Shader.Find("Hidden/SEGI_C"));
-		material.hideFlags = HideFlags.HideAndDontSave;
-
-
-
+		if (!material) {
+			material = new Material(Shader.Find("Hidden/SEGI_C"));
+			material.hideFlags = HideFlags.HideAndDontSave;
+		}
 
 		//Get the camera attached to this game object
-		//Apply depth render flags
 		attachedCamera = this.GetComponent<Camera>();
 		attachedCamera.depthTextureMode |= DepthTextureMode.Depth;
 		attachedCamera.depthTextureMode |= DepthTextureMode.DepthNormals;
+		#if UNITY_5_4_OR_NEWER
 		attachedCamera.depthTextureMode |= DepthTextureMode.MotionVectors;
-
-
+		#endif
 
 
 		//Find the proxy shadow rendering camera if it exists
@@ -629,41 +620,51 @@ public class SEGICascaded : MonoBehaviour
 
 		//Create the proxy camera objects responsible for rendering the scene to voxelize the scene. If they already exist, destroy them
 		GameObject vcgo = GameObject.Find("SEGI_VOXEL_CAMERA");
-		if (vcgo)
-			DestroyImmediate(vcgo);
+		
+		if (!vcgo) {
+			voxelCameraGO = new GameObject("SEGI_VOXEL_CAMERA");
+			voxelCameraGO.hideFlags = HideFlags.HideAndDontSave;
 
-		voxelCameraGO = new GameObject("SEGI_VOXEL_CAMERA");
-		voxelCameraGO.hideFlags = HideFlags.HideAndDontSave;
-
-		voxelCamera = voxelCameraGO.AddComponent<Camera>();
-		voxelCamera.enabled = false;
-		voxelCamera.orthographic = true;
-		voxelCamera.orthographicSize = voxelSpaceSize * 0.5f;
-		voxelCamera.nearClipPlane = 0.0f;
-		voxelCamera.farClipPlane = voxelSpaceSize;
-		voxelCamera.depth = -2;
-		voxelCamera.renderingPath = RenderingPath.Forward;
-		voxelCamera.clearFlags = CameraClearFlags.Color;
-		voxelCamera.backgroundColor = Color.black;
-		voxelCamera.useOcclusionCulling = false;
+			voxelCamera = voxelCameraGO.AddComponent<Camera>();
+			voxelCamera.enabled = false;
+			voxelCamera.orthographic = true;
+			voxelCamera.orthographicSize = voxelSpaceSize * 0.5f;
+			voxelCamera.nearClipPlane = 0.0f;
+			voxelCamera.farClipPlane = voxelSpaceSize;
+			voxelCamera.depth = -2;
+			voxelCamera.renderingPath = RenderingPath.Forward;
+			voxelCamera.clearFlags = CameraClearFlags.Color;
+			voxelCamera.backgroundColor = Color.black;
+			voxelCamera.useOcclusionCulling = false;
+		}
+		else
+		{
+			voxelCameraGO = vcgo;
+			voxelCamera = vcgo.GetComponent<Camera>();
+		}
 
 		GameObject lvp = GameObject.Find("SEGI_LEFT_VOXEL_VIEW");
-		if (lvp)
-			DestroyImmediate(lvp);
-
-		leftViewPoint = new GameObject("SEGI_LEFT_VOXEL_VIEW");
-		leftViewPoint.hideFlags = HideFlags.HideAndDontSave;
+		
+		if (!lvp) {
+			leftViewPoint = new GameObject("SEGI_LEFT_VOXEL_VIEW");
+			leftViewPoint.hideFlags = HideFlags.HideAndDontSave;
+		}
+		else
+		{
+			leftViewPoint = lvp;
+		}
 
 		GameObject tvp = GameObject.Find("SEGI_TOP_VOXEL_VIEW");
-		if (tvp)
-			DestroyImmediate(tvp);
-
-		topViewPoint = new GameObject("SEGI_TOP_VOXEL_VIEW");
-		topViewPoint.hideFlags = HideFlags.HideAndDontSave;
-
-
-
-
+		
+		if (!tvp) {
+			topViewPoint = new GameObject("SEGI_TOP_VOXEL_VIEW");
+			topViewPoint.hideFlags = HideFlags.HideAndDontSave;
+		}
+		else
+		{
+			topViewPoint = tvp;
+		}
+		
 		//Setup sun depth texture
 		if (sunDepthTexture)
 		{
@@ -958,6 +959,7 @@ public class SEGICascaded : MonoBehaviour
 			}
 			else
 			{
+				//GI is still flickering a bit when the scene view and the game view are opened at the same time
 				origin = transform.position + transform.forward * clipmapSize / 4.0f;
 			}
 			//Lock the voxel volume origin based on the interval

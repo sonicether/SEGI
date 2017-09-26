@@ -54,19 +54,8 @@ public class SEGICascadedEditor : Editor
 
 	const string presetPath = "Assets/SEGI/Resources/Cascaded Presets";
 
-	GUIStyle headerStyle;
-	GUIStyle vramLabelStyle
-	{
-		get
-		{
-			GUIStyle s = new GUIStyle(EditorStyles.boldLabel);
-			s.fontStyle = FontStyle.Italic;
-			return s;
-		}
-	}
-
-
 	bool showMainConfig = true;
+	bool showStatistics = false;
 	bool showDebugTools = false;
 	bool showTracingProperties = true;
 	bool showEnvironmentProperties = true;
@@ -181,7 +170,6 @@ public class SEGICascadedEditor : Editor
 		if (showMainConfig)
 		{
 			EditorGUI.indentLevel++;
-			EditorGUILayout.BeginVertical();
 			EditorGUILayout.PropertyField(voxelResolution, new GUIContent("Voxel Resolution", "The resolution of the voxel texture used to calculate GI."));
 			EditorGUILayout.PropertyField(voxelAA, new GUIContent("Voxel AA", "Enables anti-aliasing during voxelization for higher precision voxels."));
 			EditorGUILayout.PropertyField(innerOcclusionLayers, new GUIContent("Inner Occlusion Layers", "Enables the writing of additional black occlusion voxel layers on the back face of geometry. Can help with light leaking but may cause artifacts with small objects."));
@@ -192,9 +180,6 @@ public class SEGICascadedEditor : Editor
 			EditorGUILayout.PropertyField(updateGI, new GUIContent("Update GI", "Whether voxelization and multi-bounce rendering should update every frame. When disabled, GI tracing will use cached data from the last time this was enabled."));
 			EditorGUILayout.PropertyField(infiniteBounces, new GUIContent("Infinite Bounces", "Enables infinite bounces. This is expensive for complex scenes and is still experimental."));
 			EditorGUILayout.PropertyField(followTransform, new GUIContent("Follow Transform", "If provided, the voxel volume will follow and be centered on this object instead of the camera. Useful for top-down scenes."));
-			EditorGUILayout.EndVertical();
-			EditorGUILayout.Space();
-			EditorGUILayout.LabelField("VRAM Usage: " + instance.vramUsage.ToString("F2") + " MB", vramLabelStyle);
 			EditorGUI.indentLevel--;
 		}
 
@@ -272,6 +257,18 @@ public class SEGICascadedEditor : Editor
 
 		EditorGUILayout.Space();
 		EditorGUILayout.Space();
+		
+		// Statistics
+		showStatistics = EditorGUILayout.Foldout(showStatistics, new GUIContent("Statistics"));
+		if (showStatistics)
+		{
+			EditorGUI.indentLevel++;
+			EditorGUILayout.LabelField("VRAM Usage: " + instance.vramUsage.ToString("F2") + " MB");
+			EditorGUI.indentLevel--;
+		}
+
+		EditorGUILayout.Space();
+		EditorGUILayout.Space();
 
 		//Debug tools
 		showDebugTools = EditorGUILayout.Foldout(showDebugTools, new GUIContent("Debug Tools"));
@@ -290,7 +287,7 @@ public class SEGICascadedEditor : Editor
 
 	void SavePreset(string name)
 	{
-		if (name == "")
+		if (name == null || name.Trim() == string.Empty)
 		{
 			Debug.LogWarning("SEGI: Type in a name for the preset to be saved!");
 			return; 

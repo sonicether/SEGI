@@ -420,7 +420,9 @@
 					uint compareValue = 0;
 					uint originalValue;
 
-					[allow_uav_condition] for (int i = 0; i < 12; i++)
+					[allow_uav_condition]
+					[unroll]
+					for (int i = 0; i < 1; i++)
 					{
 						InterlockedCompareExchange(destination[coord], compareValue, writeValue, originalValue);
 						if (compareValue == originalValue)

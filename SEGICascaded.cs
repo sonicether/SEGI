@@ -256,14 +256,10 @@ public class SEGICascaded : MonoBehaviour
 	/// <summary>
 	/// Estimates the VRAM usage of all the render textures used to render GI.
 	/// </summary>
-	public float vramUsage	//TODO: Update vram usage calculation
+	public float vramUsage
 	{
 		get
 		{
-			if (!enabled)
-			{
-				return 0.0f;
-			}
 			long v = 0;
 
 			if (sunDepthTexture != null)
@@ -288,7 +284,7 @@ public class SEGICascaded : MonoBehaviour
 			{
 				for (int i = 0; i < numClipmaps; i++)
 				{
-					if (clipmaps[i] != null)
+					if (clipmaps[i].volumeTexture0 != null)
 					{
 						v += clipmaps[i].volumeTexture0.width * clipmaps[i].volumeTexture0.height * clipmaps[i].volumeTexture0.volumeDepth * 16 * 4;
 					}
@@ -299,7 +295,7 @@ public class SEGICascaded : MonoBehaviour
 			{
 				for (int i = 0; i < numClipmaps; i++)
 				{
-					if (irradianceClipmaps[i] != null)
+					if (irradianceClipmaps[i].volumeTexture0 != null)
 					{
 						v += irradianceClipmaps[i].volumeTexture0.width * irradianceClipmaps[i].volumeTexture0.height * irradianceClipmaps[i].volumeTexture0.volumeDepth * 16 * 4;
 					}

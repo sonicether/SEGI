@@ -313,7 +313,6 @@
 					uint compareValue = 0;
 					uint originalValue;
 
-					[allow_uav_condition]
 					[unroll]
 					for (int i = 0; i < 1; i++)
 					{

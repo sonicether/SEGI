@@ -171,6 +171,8 @@ public class SEGI : MonoBehaviour
 
 	const int numMipLevels = 6;
 
+	Camera mainCamera;
+
 	Camera voxelCamera;
 	GameObject voxelCameraGO;
 	GameObject leftViewPoint;
@@ -526,6 +528,8 @@ public class SEGI : MonoBehaviour
 			material.hideFlags = HideFlags.HideAndDontSave;
 		}
 		
+		mainCamera = Camera.main;
+
 		//Get the camera attached to this game object
 		attachedCamera = this.GetComponent<Camera>();
 		attachedCamera.depthTextureMode |= DepthTextureMode.Depth;
@@ -879,8 +883,7 @@ public class SEGI : MonoBehaviour
 			}
 			else
 			{
-				//GI is still flickering a bit when the scene view and the game view are opened at the same time
-				origin = transform.position + transform.forward * voxelSpaceSize / 4.0f;
+				origin = mainCamera.transform.position + mainCamera.transform.forward * voxelSpaceSize / 4f;
 			}
 			//Lock the voxel volume origin based on the interval
 			voxelSpaceOrigin = new Vector3(Mathf.Round(origin.x / interval) * interval, Mathf.Round(origin.y / interval) * interval, Mathf.Round(origin.z / interval) * interval);
